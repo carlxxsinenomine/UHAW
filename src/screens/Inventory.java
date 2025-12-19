@@ -1,6 +1,8 @@
-package backend;
+package screens;
 
-public class Inventory {
+import javax.swing.*;
+
+public class Inventory extends JFrame {
     String itemName;
     int unitPrice, itemQuantity;
 
