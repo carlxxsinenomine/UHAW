@@ -33,19 +33,8 @@ public class NavBarPanel extends JPanel{
         // Search field
         JTextField searchField = getSearchField();
 
-        // Close button (X)
-        JButton closeButton = new JButton("X");
-        closeButton.setFont(new Font("Arial", Font.BOLD, 16));
-        closeButton.setForeground(Color.BLACK);
-        closeButton.setBackground(new Color(150, 185, 255));
-        closeButton.setFocusPainted(false);
-        closeButton.setBorderPainted(false);
-        closeButton.setPreferredSize(new Dimension(35, 35));
-        closeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        closeButton.addActionListener(e -> System.exit(0));
 
         rightPanel.add(searchField);
-        rightPanel.add(closeButton);
 
         // Add panels to nav panel
         add(leftPanel, BorderLayout.WEST);
