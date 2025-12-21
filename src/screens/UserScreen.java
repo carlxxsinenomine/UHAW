@@ -1,10 +1,9 @@
 package screens;
 
 import components.NavBarPanel;
-import main.MainActivity;
-
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
+import main.MainActivity;
 
 /**
  * UserScreen class represents the main invoice generation interface.
@@ -180,8 +179,8 @@ public class UserScreen extends JPanel {
         deleteIcon.setFont(new Font("Arial", Font.PLAIN, 16));
         deleteIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        JTextField itemNameField = getTableInputField("Item " + itemNumber);
-        JTextField descField = getTableInputField("Lorem ipsum");
+        JTextField itemNameField = createPlaceholderField("Item " + itemNumber);
+        JTextField descField = getTableInputField("");
         JTextField qtyField = getTableInputField("");
         JTextField valueField = getTableInputField("");
         JTextField totalField = getTableInputField("");
@@ -330,6 +329,44 @@ public class UserScreen extends JPanel {
                 new RoundedBorder(12, new Color(180, 180, 180)),
                 BorderFactory.createEmptyBorder(5, 8, 5, 8)
         ));
+
+        return inputField;
+    }
+
+    /**
+     * Creates a JTextField with placeholder text that disappears when focused.
+     *
+     * @param placeholder the placeholder text to display
+     * @return JTextField with placeholder behavior
+     */
+    private static JTextField createPlaceholderField(String placeholder) {
+        JTextField inputField = new JTextField(10);
+        inputField.setText(placeholder);
+        inputField.setFont(new Font("Arial", Font.PLAIN, 13));
+        inputField.setForeground(Color.GRAY);
+        inputField.setBackground(Color.WHITE);
+        inputField.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedBorder(12, new Color(180, 180, 180)),
+                BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+
+        inputField.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                if (inputField.getText().equals(placeholder)) {
+                    inputField.setText("");
+                    inputField.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                if (inputField.getText().isEmpty()) {
+                    inputField.setText(placeholder);
+                    inputField.setForeground(Color.GRAY);
+                }
+            }
+        });
 
         return inputField;
     }

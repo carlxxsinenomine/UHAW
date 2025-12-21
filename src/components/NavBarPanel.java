@@ -1,8 +1,8 @@
 package components;
 
-import main.MainActivity;
 import java.awt.*;
 import javax.swing.*;
+import main.MainActivity;
 
 /*
    // Syempre with the help of my beloved Claude.ai
@@ -56,12 +56,14 @@ public class NavBarPanel extends JPanel {
     }
 
     /**
-     * Creates and returns the search field with rounded corners.
+     * Creates and returns the search field with rounded corners and placeholder text.
      *
-     * @return JTextField styled search field
+     * @return JTextField styled search field with placeholder behavior
      */
     private static JTextField getSearchField() {
-        JTextField searchField = new JTextField("search", 20);
+        String placeholder = "Search";
+        JTextField searchField = new JTextField(20);
+        searchField.setText(placeholder);
         searchField.setFont(new Font("Arial", Font.PLAIN, 14));
         searchField.setForeground(Color.GRAY);
         searchField.setBackground(new Color(200, 220, 255));
@@ -69,6 +71,25 @@ public class NavBarPanel extends JPanel {
                 BorderFactory.createLineBorder(new Color(180, 210, 255), 1),
                 BorderFactory.createEmptyBorder(8, 12, 8, 12)
         ));
+
+        // Add placeholder behavior with focus events
+        searchField.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                if (searchField.getText().equals(placeholder)) {
+                    searchField.setText("");
+                    searchField.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                if (searchField.getText().isEmpty()) {
+                    searchField.setText(placeholder);
+                    searchField.setForeground(Color.GRAY);
+                }
+            }
+        });
 
         // Round the search field corners
         searchField.setOpaque(false);
