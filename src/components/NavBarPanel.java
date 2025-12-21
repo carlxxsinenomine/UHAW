@@ -1,8 +1,9 @@
 package components;
 
+import main.MainActivity;
 import java.awt.*;
-
 import javax.swing.*;
+
 /*
    // Syempre with the help of my beloved Claude.ai
    // Notice kung pano ko pigseparate into components codes nya
@@ -17,23 +18,36 @@ import javax.swing.*;
                     - Search bar
  **/
 
-public class NavBarPanel extends JPanel{
-    public NavBarPanel() {
-        setLayout(new BorderLayout()); //https://www.geeksforgeeks.org/java/java-awt-borderlayout-class/
-        setBackground(new Color(130, 170, 255)); // Light blue color
+/**
+ * NavBarPanel represents the navigation bar component.
+ * Contains navigation buttons for different screens and a search field.
+ *
+ * @author Your Name
+ * @version 1.0
+ */
+public class NavBarPanel extends JPanel {
+    private String activeScreen;
+
+    /**
+     * Constructor that creates the navigation bar with specified active screen.
+     *
+     * @param activeScreen the name of the currently active screen
+     */
+    public NavBarPanel(String activeScreen) {
+        this.activeScreen = activeScreen;
+        setLayout(new BorderLayout());
+        setBackground(new Color(130, 170, 255));
         setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
         // Left section with User and navigation items
         JPanel leftPanel = getJPanel();
 
-        // Right section with search bar and close button
+        // Right section with search bar
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         rightPanel.setOpaque(false);
 
         // Search field
         JTextField searchField = getSearchField();
-
-
         rightPanel.add(searchField);
 
         // Add panels to nav panel
@@ -41,6 +55,11 @@ public class NavBarPanel extends JPanel{
         add(rightPanel, BorderLayout.EAST);
     }
 
+    /**
+     * Creates and returns the search field with rounded corners.
+     *
+     * @return JTextField styled search field
+     */
     private static JTextField getSearchField() {
         JTextField searchField = new JTextField("search", 20);
         searchField.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -66,19 +85,41 @@ public class NavBarPanel extends JPanel{
         return searchField;
     }
 
-    private static JPanel getJPanel() {
+    /**
+     * Creates and returns the left panel containing the title and navigation buttons.
+     *
+     * @return JPanel containing navigation elements
+     */
+    private JPanel getJPanel() {
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 30, 0));
         leftPanel.setOpaque(false);
 
-        // User label (bold and larger)
-        JLabel userLabel = new JLabel("User");
+        // User label (bold and larger) - changes based on active screen
+        JLabel userLabel = new JLabel(activeScreen);
         userLabel.setFont(new Font("Arial", Font.BOLD, 28));
         userLabel.setForeground(Color.BLACK);
 
-        // Navigation buttons
+        // Navigation buttons with navigation functionality
         JButton homeButton = new NavButton("Home");
+        homeButton.addActionListener(e -> {
+            if (MainActivity.getInstance() != null) {
+                MainActivity.getInstance().showScreen(MainActivity.USER_SCREEN);
+            }
+        });
+
         JButton invoicesButton = new NavButton("Invoices");
+        invoicesButton.addActionListener(e -> {
+            if (MainActivity.getInstance() != null) {
+                MainActivity.getInstance().showScreen(MainActivity.INVOICE_SCREEN);
+            }
+        });
+
         JButton summaryButton = new NavButton("Summary");
+        summaryButton.addActionListener(e -> {
+            if (MainActivity.getInstance() != null) {
+                MainActivity.getInstance().showScreen(MainActivity.SUMMARY_SCREEN);
+            }
+        });
 
         leftPanel.add(userLabel);
         leftPanel.add(homeButton);
@@ -91,10 +132,8 @@ public class NavBarPanel extends JPanel{
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
         g2.setColor(getBackground());
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
-
         g2.dispose();
     }
 }

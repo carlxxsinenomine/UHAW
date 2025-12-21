@@ -5,7 +5,20 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+/**
+ * NavButton represents a single navigation button in the navigation bar.
+ * Features hover effects and click handling.
+ *
+ * @author Your Name
+ * @version 1.0
+ */
 public class NavButton extends JButton {
+
+    /**
+     * Constructor that creates a navigation button.
+     *
+     * @param text the text to display on the button
+     */
     public NavButton(String text) {
         setText(text);
         setFont(new Font("Arial", Font.BOLD, 16));
@@ -28,7 +41,5 @@ public class NavButton extends JButton {
                 setForeground(Color.BLACK);
             }
         });
-
-        addActionListener(e -> System.out.println(text + " clicked"));
     }
 }
