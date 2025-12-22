@@ -141,11 +141,19 @@ public class NavBarPanel extends JPanel {
                 MainActivity.getInstance().showScreen(MainActivity.SUMMARY_SCREEN);
             }
         });
+        
+        JButton adminButton = new NavButton("Admin");
+        adminButton.addActionListener(e -> {
+            if (MainActivity.getInstance() != null) {
+                MainActivity.getInstance().showScreen(MainActivity.ADMIN_LOGIN_SCREEN);
+            }
+        });
 
         leftPanel.add(userLabel);
         leftPanel.add(homeButton);
         leftPanel.add(invoicesButton);
         leftPanel.add(summaryButton);
+        leftPanel.add(adminButton);
         return leftPanel;
     }
 
