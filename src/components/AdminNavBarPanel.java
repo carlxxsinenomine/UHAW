@@ -89,18 +89,10 @@ public class AdminNavBarPanel extends JPanel {
             }
         });
 
-        JButton usersButton = new AdminNavButton("Users");
-        usersButton.addActionListener(e -> {
-            if (MainActivity.getInstance() != null) {
-                MainActivity.getInstance().showScreen(MainActivity.ADMIN_USERS_SCREEN);
-            }
-        });
-
         leftPanel.add(adminLabel);
         leftPanel.add(dashboardButton);
         leftPanel.add(inventoryButton);
         leftPanel.add(invoicesButton);
-        leftPanel.add(usersButton);
 
         return leftPanel;
     }

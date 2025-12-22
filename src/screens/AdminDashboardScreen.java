@@ -1,8 +1,9 @@
 package screens;
 
 import components.AdminNavBarPanel;
-import javax.swing.*;
 import java.awt.*;
+import java.io.*;
+import javax.swing.*;
 
 /**
  * AdminDashboardScreen displays admin dashboard with statistics and overview.
@@ -12,6 +13,9 @@ import java.awt.*;
  * @version 1.0
  */
 public class AdminDashboardScreen extends JPanel {
+    private JLabel invoicesValueLabel;
+    private JLabel revenueValueLabel;
+    private Timer refreshTimer;
 
     /**
      * Constructor that initializes and displays the AdminDashboardScreen.
@@ -55,6 +59,39 @@ public class AdminDashboardScreen extends JPanel {
         mainContainer.add(contentPanel, BorderLayout.CENTER);
 
         add(mainContainer);
+        
+        // Start auto-refresh timer (updates every 2 seconds)
+        startAutoRefresh();
+    }
+    
+    /**
+     * Starts an auto-refresh timer that updates dashboard stats periodically.
+     */
+    private void startAutoRefresh() {
+        refreshTimer = new Timer(2000, e -> refreshDashboardStats());
+        refreshTimer.start();
+    }
+    
+    /**
+     * Stops the auto-refresh timer.
+     */
+    public void stopAutoRefresh() {
+        if (refreshTimer != null) {
+            refreshTimer.stop();
+        }
+    }
+    
+    /**
+     * Refreshes all dashboard statistics.
+     */
+    public void refreshDashboardStats() {
+        if (invoicesValueLabel != null && revenueValueLabel != null) {
+            int totalInvoices = getTotalInvoicesCount();
+            double totalRevenue = calculateTotalRevenue();
+            
+            invoicesValueLabel.setText(String.valueOf(totalInvoices));
+            revenueValueLabel.setText(String.format("PHP %,.2f", totalRevenue));
+        }
     }
 
     /**
@@ -67,14 +104,21 @@ public class AdminDashboardScreen extends JPanel {
         statsPanel.setOpaque(false);
         statsPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-        // Total Invoices Card
-        JPanel invoicesCard = createStatCard("Total Invoices", "0", new Color(100, 200, 150));
+        // Calculate metrics dynamically
+        int totalInvoices = getTotalInvoicesCount();
+        double totalRevenue = calculateTotalRevenue();
+        int inventoryItems = 7; // This is static based on the inventory.json
+
+        // Total Invoices Card - store reference for updates
+        invoicesValueLabel = new JLabel(String.valueOf(totalInvoices));
+        JPanel invoicesCard = createStatCardWithLabel("Total Invoices", invoicesValueLabel, new Color(100, 200, 150));
 
         // Inventory Items Card
-        JPanel inventoryCard = createStatCard("Inventory Items", "7", new Color(130, 170, 255));
+        JPanel inventoryCard = createStatCard("Inventory Items", String.valueOf(inventoryItems), new Color(130, 170, 255));
 
-        // Total Revenue Card
-        JPanel revenueCard = createStatCard("Total Revenue", "$0.00", new Color(255, 180, 100));
+        // Total Revenue Card - store reference for updates
+        revenueValueLabel = new JLabel(String.format("PHP %,.2f", totalRevenue));
+        JPanel revenueCard = createStatCardWithLabel("Total Revenue", revenueValueLabel, new Color(255, 180, 100));
 
         statsPanel.add(invoicesCard);
         statsPanel.add(inventoryCard);
@@ -106,6 +150,39 @@ public class AdminDashboardScreen extends JPanel {
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel valueLabel = new JLabel(value);
+        valueLabel.setFont(new Font("Arial", Font.BOLD, 36));
+        valueLabel.setForeground(Color.WHITE);
+        valueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        card.add(titleLabel);
+        card.add(Box.createVerticalStrut(10));
+        card.add(valueLabel);
+
+        return card;
+    }
+
+    /**
+     * Creates a single statistics card with a reference label for updates.
+     *
+     * @param title the title of the stat
+     * @param valueLabel the label to display (reference stored for updates)
+     * @param color the background color of the card
+     * @return JPanel representing a stat card
+     */
+    private JPanel createStatCardWithLabel(String title, JLabel valueLabel, Color color) {
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBackground(color);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(color.darker(), 1),
+                BorderFactory.createEmptyBorder(30, 20, 30, 20)
+        ));
+
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         valueLabel.setFont(new Font("Arial", Font.BOLD, 36));
         valueLabel.setForeground(Color.WHITE);
         valueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -152,5 +229,71 @@ public class AdminDashboardScreen extends JPanel {
         activityPanel.add(wrapper);
 
         return activityPanel;
+    }
+
+    /**
+     * Gets the total count of invoices from the invoices directory.
+     *
+     * @return the total number of invoices
+     */
+    private int getTotalInvoicesCount() {
+        File invoicesDir = new File("invoices");
+        
+        if (!invoicesDir.exists()) {
+            invoicesDir = new File("src/main/invoices");
+        }
+        
+        if (!invoicesDir.exists() || !invoicesDir.isDirectory()) {
+            return 0;
+        }
+        
+        File[] invoiceFiles = invoicesDir.listFiles((dir, name) -> name.endsWith(".txt"));
+        return invoiceFiles != null ? invoiceFiles.length : 0;
+    }
+
+    /**
+     * Calculates the total revenue from all invoices.
+     *
+     * @return the total revenue from all invoices
+     */
+    private double calculateTotalRevenue() {
+        File invoicesDir = new File("invoices");
+        
+        if (!invoicesDir.exists()) {
+            invoicesDir = new File("src/main/invoices");
+        }
+        
+        if (!invoicesDir.exists() || !invoicesDir.isDirectory()) {
+            return 0.0;
+        }
+        
+        File[] invoiceFiles = invoicesDir.listFiles((dir, name) -> name.endsWith(".txt"));
+        if (invoiceFiles == null || invoiceFiles.length == 0) {
+            return 0.0;
+        }
+        
+        double totalRevenue = 0.0;
+        
+        for (File file : invoiceFiles) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("Amount due")) {
+                        String amountStr = line.substring(line.indexOf("Amount due") + 10).trim();
+                        amountStr = amountStr.replace("PHP", "").replace(",", "").trim();
+                        try {
+                            totalRevenue += Double.parseDouble(amountStr);
+                        } catch (NumberFormatException e) {
+                            // Skip invalid amounts
+                        }
+                        break; // Found the amount due, move to next file
+                    }
+                }
+            } catch (IOException e) {
+                System.err.println("Error reading invoice: " + file.getName());
+            }
+        }
+        
+        return totalRevenue;
     }
 }

@@ -28,7 +28,6 @@ public class MainActivity extends JFrame {
     public static final String ADMIN_DASHBOARD_SCREEN = "ADMIN_DASHBOARD_SCREEN";
     public static final String ADMIN_INVENTORY_SCREEN = "ADMIN_INVENTORY_SCREEN";
     public static final String ADMIN_INVOICES_SCREEN = "ADMIN_INVOICES_SCREEN";
-    public static final String ADMIN_USERS_SCREEN = "ADMIN_USERS_SCREEN";
 
     // Singleton instance for global access
     private static MainActivity instance;
@@ -66,13 +65,11 @@ public class MainActivity extends JFrame {
         AdminDashboardScreen adminDashboardScreen = new AdminDashboardScreen();
         AdminInventoryScreen adminInventoryScreen = new AdminInventoryScreen();
         AdminInvoicesScreen adminInvoicesScreen = new AdminInvoicesScreen();
-        AdminUsersScreen adminUsersScreen = new AdminUsersScreen();
 
         cardPanel.add(adminLoginScreen, ADMIN_LOGIN_SCREEN);
         cardPanel.add(adminDashboardScreen, ADMIN_DASHBOARD_SCREEN);
         cardPanel.add(adminInventoryScreen, ADMIN_INVENTORY_SCREEN);
         cardPanel.add(adminInvoicesScreen, ADMIN_INVOICES_SCREEN);
-        cardPanel.add(adminUsersScreen, ADMIN_USERS_SCREEN);
 
         // Add card panel to frame
         add(cardPanel);
