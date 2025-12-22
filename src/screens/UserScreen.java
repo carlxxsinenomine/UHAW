@@ -2,6 +2,8 @@ package screens;
 
 import components.NavBarPanel;
 import java.awt.*;
+import java.io.File;
+import java.util.*;
 import javax.swing.*;
 import main.MainActivity;
 
@@ -16,6 +18,11 @@ import main.MainActivity;
  */
 public class UserScreen extends JPanel {
 
+    private Map<String, Double> itemValueMap;
+    private Map<String, String> itemCategoryMap;
+    private Set<String> selectedCategories;
+    private JPanel itemsPanel;
+
     /**
      * Constructor that initializes and displays the UserScreen.
      * Sets up the navigation bar, customer information fields,
@@ -24,6 +31,15 @@ public class UserScreen extends JPanel {
     public UserScreen() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
+        
+        itemValueMap = new HashMap<>();
+        itemCategoryMap = new HashMap<>();
+        selectedCategories = new HashSet<>();
+        
+        loadInventoryData();
+        
+        // Initialize with all categories selected
+        selectedCategories.addAll(Arrays.asList("1", "2", "3"));
 
         JPanel navBarPanel = new NavBarPanel("Home");
 
@@ -63,6 +79,71 @@ public class UserScreen extends JPanel {
 
         add(containerPanel);
     }
+
+    /**
+     * Loads inventory data from inventory.json file.
+     */
+    private void loadInventoryData() {
+        try {
+            // Path to inventory.json relative to screens folder
+            File file = new File("src/items/inventory.json");
+            
+            // If not found, try relative path from screens
+            if (!file.exists()) {
+                file = new File("../items/inventory.json");
+            }
+            
+            if (!file.exists()) {
+                System.err.println("Could not find inventory.json. Tried: src/items/inventory.json and ../items/inventory.json");
+                return;
+            }
+            
+            try (Scanner scanner = new Scanner(file)) {
+                StringBuilder content = new StringBuilder();
+                while (scanner.hasNextLine()) {
+                    content.append(scanner.nextLine());
+                }
+                parseInventoryJson(content.toString());
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading inventory data: " + e.getMessage());
+        }
+    }
+
+    private void parseInventoryJson(String jsonContent) {
+        // Parse JSON manually
+        String jsonStr = jsonContent;
+        jsonStr = jsonStr.substring(jsonStr.indexOf('[') + 1, jsonStr.lastIndexOf(']'));
+        
+        // Split by objects
+        String[] items = jsonStr.split("\\{");
+        for (String item : items) {
+            if (item.trim().isEmpty()) continue;
+            
+            // Extract itemName
+            int nameStart = item.indexOf("\"itemName\"") + 12;
+            int nameEnd = item.indexOf("\"", nameStart + 1);
+            String itemName = item.substring(nameStart, nameEnd);
+            
+            // Extract value
+            int valueStart = item.indexOf("\"value\"") + 9;
+            int valueEnd = item.indexOf(",", valueStart);
+            if (valueEnd == -1) {
+                valueEnd = item.indexOf("}", valueStart);
+            }
+            String valueStr = item.substring(valueStart, valueEnd).trim();
+            double value = Double.parseDouble(valueStr);
+            
+            // Extract category
+            int catStart = item.indexOf("\"category\"") + 12;
+            int catEnd = item.indexOf("\"", catStart + 1);
+            String category = item.substring(catStart, catEnd);
+            
+            itemValueMap.put(itemName, value);
+            itemCategoryMap.put(itemName, category);
+        }
+    }
+
 
     /**
      * Creates and returns the customer information input panel.
@@ -106,8 +187,8 @@ public class UserScreen extends JPanel {
 
     /**
      * Creates and returns the invoice items table panel.
-     * Contains a table with columns: Item Name, Description, Qty, Value, and Total.
-     * Includes 7 pre-populated rows and an "Add more" button at the bottom.
+     * Contains a table with columns: Item Name, Qty, Value, and Total.
+     * Includes category toggle buttons and 7 pre-populated rows.
      *
      * @return JPanel containing the invoice items table
      */
@@ -116,12 +197,15 @@ public class UserScreen extends JPanel {
         tablePanel.setOpaque(false);
         tablePanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
 
+        // Category toggle panel
+        JPanel categoryPanel = createCategoryTogglePanel();
+        
         // Header panel
-        JPanel headerPanel = new JPanel(new GridLayout(1, 6, 5, 0));
+        JPanel headerPanel = new JPanel(new GridLayout(1, 4, 5, 0));
         headerPanel.setBackground(new Color(200, 200, 200));
         headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        String[] headers = {"", "Item Name", "Description", "Qty", "Value", "Total"};
+        String[] headers = {"Item Name", "Qty", "Value", "Total"};
         for (String header : headers) {
             JLabel headerLabel = new JLabel(header, SwingConstants.CENTER);
             headerLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -129,7 +213,7 @@ public class UserScreen extends JPanel {
         }
 
         // Items panel with rows
-        JPanel itemsPanel = new JPanel();
+        itemsPanel = new JPanel();
         itemsPanel.setLayout(new BoxLayout(itemsPanel, BoxLayout.Y_AXIS));
         itemsPanel.setOpaque(false);
 
@@ -137,62 +221,162 @@ public class UserScreen extends JPanel {
             itemsPanel.add(createItemRow(i));
         }
 
-        // Add more button
-        JButton addMoreButton = new JButton("+ Add more");
-        addMoreButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        addMoreButton.setBackground(new Color(220, 220, 220));
-        addMoreButton.setFocusPainted(false);
-        addMoreButton.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
-        addMoreButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         JPanel scrollableContent = new JPanel(new BorderLayout());
         scrollableContent.setOpaque(false);
-        scrollableContent.add(itemsPanel, BorderLayout.CENTER);
-        scrollableContent.add(addMoreButton, BorderLayout.SOUTH);
+        scrollableContent.add(itemsPanel, BorderLayout.NORTH);
 
         JScrollPane scrollPane = new JScrollPane(scrollableContent);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
 
-        tablePanel.add(headerPanel, BorderLayout.NORTH);
-        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        // Combine header and scroll pane
+        JPanel tableContentPanel = new JPanel(new BorderLayout());
+        tableContentPanel.setOpaque(false);
+        tableContentPanel.add(headerPanel, BorderLayout.NORTH);
+        tableContentPanel.add(scrollPane, BorderLayout.CENTER);
+
+        tablePanel.add(categoryPanel, BorderLayout.NORTH);
+        tablePanel.add(tableContentPanel, BorderLayout.CENTER);
 
         return tablePanel;
     }
 
     /**
-     * Creates and returns a single invoice item row.
-     * Each row contains a delete icon, item name field, description field,
-     * quantity field, value field, and total field.
+     * Creates the category toggle panel with buttons for each category.
      *
-     * @param itemNumber the item number for this row
+     * @return JPanel containing category toggle buttons
+     */
+    private JPanel createCategoryTogglePanel() {
+        JPanel categoryPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        categoryPanel.setOpaque(false);
+        categoryPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+
+        JLabel categoryLabel = new JLabel("Categories:");
+        categoryLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        categoryPanel.add(categoryLabel);
+
+        for (String category : Arrays.asList("1", "2", "3")) {
+            JToggleButton categoryBtn = new JToggleButton(category);
+            categoryBtn.setSelected(true);
+            categoryBtn.setFont(new Font("Arial", Font.PLAIN, 12));
+            categoryBtn.setPreferredSize(new Dimension(50, 30));
+            categoryBtn.setBackground(new Color(130, 170, 255));
+            categoryBtn.setForeground(Color.WHITE);
+            categoryBtn.setFocusPainted(false);
+            
+            String catId = category;
+            categoryBtn.addActionListener(e -> {
+                if (categoryBtn.isSelected()) {
+                    selectedCategories.add(catId);
+                    categoryBtn.setBackground(new Color(130, 170, 255));
+                    categoryBtn.setForeground(Color.WHITE);
+                } else {
+                    selectedCategories.remove(catId);
+                    categoryBtn.setBackground(new Color(200, 200, 200));
+                    categoryBtn.setForeground(Color.BLACK);
+                }
+                refreshTableRows();
+            });
+
+            categoryPanel.add(categoryBtn);
+        }
+
+        return categoryPanel;
+    }
+
+    /**
+     * Refreshes the table rows to show only items from selected categories.
+     */
+    private void refreshTableRows() {
+        itemsPanel.removeAll();
+        for (int i = 1; i <= 7; i++) {
+            itemsPanel.add(createItemRow(i));
+        }
+        itemsPanel.revalidate();
+        itemsPanel.repaint();
+    }
+
+    /**
+     * Creates and returns a single invoice item row.
+     * Each row contains item name dropdown, quantity spinner,
+     * value field (from inventory), and auto-calculated total field.
+     *
      * @return JPanel representing a single item row
      */
     private JPanel createItemRow(int itemNumber) {
-        JPanel rowPanel = new JPanel(new GridLayout(1, 6, 5, 0));
+        JPanel rowPanel = new JPanel(new GridLayout(1, 4, 5, 0));
         rowPanel.setOpaque(false);
         rowPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-        // Delete icon
-        JLabel deleteIcon = new JLabel("🗑", SwingConstants.CENTER);
-        deleteIcon.setFont(new Font("Arial", Font.PLAIN, 16));
-        deleteIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        // Item name dropdown
+        DefaultComboBoxModel<String> itemModel = new DefaultComboBoxModel<>();
+        for (String itemName : itemValueMap.keySet()) {
+            String category = itemCategoryMap.get(itemName);
+            if (selectedCategories.contains(category)) {
+                itemModel.addElement(itemName);
+            }
+        }
+        JComboBox<String> itemNameCombo = new JComboBox<>(itemModel);
+        itemNameCombo.setFont(new Font("Arial", Font.PLAIN, 13));
+        itemNameCombo.setBackground(Color.WHITE);
 
-        JTextField itemNameField = createPlaceholderField("Item " + itemNumber);
-        JTextField descField = getTableInputField("");
-        JTextField qtyField = getTableInputField("");
-        JTextField valueField = getTableInputField("");
+        // Qty spinner
+        JSpinner qtySpinner = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
+        qtySpinner.setFont(new Font("Arial", Font.PLAIN, 13));
+
+        // Value label (constant from inventory) with border
+        JLabel valueLabel = new JLabel("");
+        valueLabel.setFont(new Font("Arial", Font.PLAIN, 13));
+        valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        valueLabel.setOpaque(true);
+        valueLabel.setBackground(Color.WHITE);
+        valueLabel.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedBorder(12, new Color(180, 180, 180)),
+                BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+
+        // Total field (read-only, calculated)
         JTextField totalField = getTableInputField("");
+        totalField.setEditable(false);
 
-        rowPanel.add(deleteIcon);
-        rowPanel.add(itemNameField);
-        rowPanel.add(descField);
-        rowPanel.add(qtyField);
-        rowPanel.add(valueField);
+        // Add listeners to update value and total
+        itemNameCombo.addActionListener(e -> {
+            String selectedItem = (String) itemNameCombo.getSelectedItem();
+            if (selectedItem != null && itemValueMap.containsKey(selectedItem)) {
+                double value = itemValueMap.get(selectedItem);
+                valueLabel.setText(String.format("%.2f", value));
+                updateTotal(qtySpinner, value, totalField);
+            }
+        });
+
+        qtySpinner.addChangeListener(e -> {
+            if (itemNameCombo.getSelectedItem() != null && itemValueMap.containsKey((String) itemNameCombo.getSelectedItem())) {
+                double value = itemValueMap.get((String) itemNameCombo.getSelectedItem());
+                updateTotal(qtySpinner, value, totalField);
+            }
+        });
+
+        rowPanel.add(itemNameCombo);
+        rowPanel.add(qtySpinner);
+        rowPanel.add(valueLabel);
         rowPanel.add(totalField);
 
         return rowPanel;
+    }
+
+    /**
+     * Updates the total field based on qty and value.
+     * Total = Qty * Value
+     */
+    private void updateTotal(JSpinner qtySpinner, double value, JTextField totalField) {
+        try {
+            int qty = (Integer) qtySpinner.getValue();
+            double total = qty * value;
+            totalField.setText(String.format("%.2f", total));
+        } catch (NumberFormatException e) {
+            // Handle invalid number format
+        }
     }
 
     /**
@@ -339,44 +523,13 @@ public class UserScreen extends JPanel {
      * @param placeholder the placeholder text to display
      * @return JTextField with placeholder behavior
      */
-    private static JTextField createPlaceholderField(String placeholder) {
-        JTextField inputField = new JTextField(10);
-        inputField.setText(placeholder);
-        inputField.setFont(new Font("Arial", Font.PLAIN, 13));
-        inputField.setForeground(Color.GRAY);
-        inputField.setBackground(Color.WHITE);
-        inputField.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedBorder(12, new Color(180, 180, 180)),
-                BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-
-        inputField.addFocusListener(new java.awt.event.FocusAdapter() {
-            @Override
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                if (inputField.getText().equals(placeholder)) {
-                    inputField.setText("");
-                    inputField.setForeground(Color.BLACK);
-                }
-            }
-
-            @Override
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                if (inputField.getText().isEmpty()) {
-                    inputField.setText(placeholder);
-                    inputField.setForeground(Color.GRAY);
-                }
-            }
-        });
-
-        return inputField;
-    }
 
     /**
      * Custom border class for creating rounded borders on text fields.
      */
     static class RoundedBorder extends javax.swing.border.AbstractBorder {
-        private int radius;
-        private Color borderColor;
+        private final int radius;
+        private final Color borderColor;
 
         /**
          * Constructor for RoundedBorder.

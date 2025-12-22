@@ -2,36 +2,43 @@
   {
     "itemName": "Product A",
     "description": "High quality product",
-    "value": 150.00
+    "value": 150.00,
+    "category": "1"
   },
   {
     "itemName": "Product B",
     "description": "Standard product",
-    "value": 75.50
+    "value": 75.50,
+    "category": "1"
   },
   {
     "itemName": "Service X",
     "description": "Professional service",
-    "value": 250.00
+    "value": 250.00,
+    "category": "2"
   },
   {
     "itemName": "Product C",
     "description": "Budget friendly option",
-    "value": 45.99
+    "value": 45.99,
+    "category": "2"
   },
   {
     "itemName": "Service Y",
     "description": "Premium support package",
-    "value": 500.00
+    "value": 500.00,
+    "category": "3"
   },
   {
     "itemName": "Product D",
     "description": "Deluxe variant",
-    "value": 199.99
+    "value": 199.99,
+    "category": "3"
   },
   {
     "itemName": "Product E",
     "description": "Economy pack",
-    "value": 29.50
+    "value": 29.50,
+    "category": "1"
   }
 ]
