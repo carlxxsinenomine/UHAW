@@ -22,6 +22,9 @@ public class UserScreen extends JPanel {
     private Map<String, String> itemCategoryMap;
     private Set<String> selectedCategories;
     private JPanel itemsPanel;
+    private JLabel overallTotalLabel;
+    private JLabel totalItemsLabel;
+    private java.util.List<JSpinner> quantitySpinners;
 
     /**
      * Constructor that initializes and displays the UserScreen.
@@ -35,6 +38,7 @@ public class UserScreen extends JPanel {
         itemValueMap = new HashMap<>();
         itemCategoryMap = new HashMap<>();
         selectedCategories = new HashSet<>();
+        quantitySpinners = new java.util.ArrayList<>();
 
         loadInventoryData();
 
@@ -483,6 +487,7 @@ public class UserScreen extends JPanel {
      */
     private void refreshTableRows() {
         itemsPanel.removeAll();
+        quantitySpinners.clear(); // Clear the spinner list
 
         // Count items in selected categories
         int itemCount = getFilteredItemCount();
@@ -494,6 +499,9 @@ public class UserScreen extends JPanel {
 
         itemsPanel.revalidate();
         itemsPanel.repaint();
+
+        // Reset totals
+        updateOverallTotals();
     }
 
     /**
@@ -538,15 +546,19 @@ public class UserScreen extends JPanel {
         JSpinner qtySpinner = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
         qtySpinner.setFont(new Font("Arial", Font.PLAIN, 13));
 
+        // Add spinner to the list for tracking
+        quantitySpinners.add(qtySpinner);
+
         // Value label (NON-EDITABLE) - Styled to look like a field
         JLabel valueLabel = getStyledLabel(String.format("%.2f", itemValue));
 
         // Total label (NON-EDITABLE) - Styled to look like a field
         JLabel totalLabel = getStyledLabel("0.00");
 
-        // Add listener to quantity spinner to update total
+        // Add listener to quantity spinner to update total and overall totals
         qtySpinner.addChangeListener(e -> {
             updateTotalFromLabel(qtySpinner, valueLabel, totalLabel);
+            updateOverallTotals();
         });
 
         rowPanel.add(itemNameLabel);
@@ -578,6 +590,7 @@ public class UserScreen extends JPanel {
     /**
      * Creates and returns the bottom panel containing overall total,
      * total items count, and action buttons.
+     * Overall Total and Total Items are now non-editable labels.
      *
      * @return JPanel containing totals and action buttons
      */
@@ -592,21 +605,29 @@ public class UserScreen extends JPanel {
 
         JPanel overallTotalContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         overallTotalContainer.setOpaque(false);
-        JLabel overallTotalLabel = new JLabel("Overall Total:");
-        overallTotalLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        JTextField overallTotalField = getInputField();
-        overallTotalField.setPreferredSize(new Dimension(100, 30));
+        JLabel overallTotalTextLabel = new JLabel("Overall Total:");
+        overallTotalTextLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+        // Overall Total as non-editable label
+        overallTotalLabel = getStyledLabel("0.00");
+        overallTotalLabel.setPreferredSize(new Dimension(100, 30));
+        overallTotalLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+        overallTotalContainer.add(overallTotalTextLabel);
         overallTotalContainer.add(overallTotalLabel);
-        overallTotalContainer.add(overallTotalField);
 
         JPanel totalItemsContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         totalItemsContainer.setOpaque(false);
-        JLabel totalItemsLabel = new JLabel("Total Items:");
-        totalItemsLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        JTextField totalItemsField = getInputField();
-        totalItemsField.setPreferredSize(new Dimension(100, 30));
+        JLabel totalItemsTextLabel = new JLabel("Total Items:");
+        totalItemsTextLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+        // Total Items as non-editable label
+        totalItemsLabel = getStyledLabel("0");
+        totalItemsLabel.setPreferredSize(new Dimension(100, 30));
+        totalItemsLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+        totalItemsContainer.add(totalItemsTextLabel);
         totalItemsContainer.add(totalItemsLabel);
-        totalItemsContainer.add(totalItemsField);
 
         totalsPanel.add(overallTotalContainer);
         totalsPanel.add(totalItemsContainer);
@@ -641,6 +662,51 @@ public class UserScreen extends JPanel {
         bottomPanel.add(wrapperPanel, BorderLayout.CENTER);
 
         return bottomPanel;
+    }
+
+    /**
+     * Updates the Overall Total and Total Items based on all row quantities.
+     * Calculates the sum of all totals and counts items with quantity > 0.
+     */
+    private void updateOverallTotals() {
+        double overallTotal = 0.0;
+        int totalItems = 0;
+
+        // Iterate through all rows in the items panel
+        Component[] components = itemsPanel.getComponents();
+        for (Component comp : components) {
+            if (comp instanceof JPanel) {
+                JPanel rowPanel = (JPanel) comp;
+                Component[] rowComponents = rowPanel.getComponents();
+
+                if (rowComponents.length >= 4) {
+                    // Get the spinner (index 1) and total label (index 3)
+                    if (rowComponents[1] instanceof JSpinner && rowComponents[3] instanceof JLabel) {
+                        JSpinner spinner = (JSpinner) rowComponents[1];
+                        JLabel totalLabel = (JLabel) rowComponents[3];
+
+                        try {
+                            int qty = (Integer) spinner.getValue();
+                            String totalText = totalLabel.getText().trim();
+                            double rowTotal = Double.parseDouble(totalText);
+
+                            overallTotal += rowTotal;
+
+                            // Count items with quantity > 0
+                            if (qty > 0) {
+                                totalItems += qty;
+                            }
+                        } catch (Exception e) {
+                            // Skip if parsing fails
+                        }
+                    }
+                }
+            }
+        }
+
+        // Update the labels
+        overallTotalLabel.setText(String.format("%.2f", overallTotal));
+        totalItemsLabel.setText(String.valueOf(totalItems));
     }
 
     /**
