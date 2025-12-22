@@ -45,15 +45,11 @@ public class AdminDashboardScreen extends JPanel {
         // Statistics cards panel
         JPanel statsPanel = createStatsPanel();
 
-        // Recent activity panel
-        JPanel activityPanel = createActivityPanel();
-
         // Content panel
         JPanel contentPanel = new JPanel(new BorderLayout(0, 20));
         contentPanel.setOpaque(false);
         contentPanel.add(titlePanel, BorderLayout.NORTH);
         contentPanel.add(statsPanel, BorderLayout.CENTER);
-        contentPanel.add(activityPanel, BorderLayout.SOUTH);
 
         mainContainer.add(navBarPanel, BorderLayout.NORTH);
         mainContainer.add(contentPanel, BorderLayout.CENTER);
@@ -141,21 +137,21 @@ public class AdminDashboardScreen extends JPanel {
         card.setBackground(color);
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(color.darker(), 1),
-                BorderFactory.createEmptyBorder(30, 20, 30, 20)
+                BorderFactory.createEmptyBorder(20, 15, 20, 15)
         ));
 
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        titleLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Arial", Font.BOLD, 36));
+        valueLabel.setFont(new Font("Arial", Font.BOLD, 28));
         valueLabel.setForeground(Color.WHITE);
         valueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         card.add(titleLabel);
-        card.add(Box.createVerticalStrut(10));
+        card.add(Box.createVerticalStrut(8));
         card.add(valueLabel);
 
         return card;

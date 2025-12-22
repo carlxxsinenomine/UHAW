@@ -43,45 +43,42 @@ public class UserScreen extends JPanel {
         loadInventoryData();
         selectedCategories.addAll(Arrays.asList("1", "2", "3"));
 
-        // 3. Navigation Bar (Uses the updated component with Main Menu button)
-        // Passing "USER" makes the big label say "USER"
-        NavBarPanel navBarPanel = new NavBarPanel("USER");
+        // 3. Main container with padding
+        JPanel mainContainer = new JPanel(new BorderLayout());
+        mainContainer.setBackground(Color.WHITE);
+        mainContainer.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // Wrapper for the header (Optional: adds title below nav bar if desired)
-        JPanel navWrapper = new JPanel(new BorderLayout());
-        navWrapper.setOpaque(false);
-        navWrapper.add(navBarPanel, BorderLayout.CENTER);
+        // 4. Navigation Bar
+        JPanel navBarPanel = new NavBarPanel("USER");
 
-        // Sub-header / Company Title
-        JLabel companyName = new JLabel("Create Purchase for Peter Loves Carl Co.");
-        companyName.setFont(new Font("Arial", Font.BOLD, 32));
-        companyName.setHorizontalAlignment(SwingConstants.CENTER);
-        companyName.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createEmptyBorder(5, 20, 10, 20),
-                BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(130, 170, 255))
-        ));
-        navWrapper.add(companyName, BorderLayout.SOUTH);
+        // 5. Title panel
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setOpaque(false);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 15, 0));
 
-        // 4. Main Content Panels
+        JLabel titleLabel = new JLabel("Create Purchase");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        titlePanel.add(titleLabel, BorderLayout.CENTER);
+
+        // 6. Main Content Panels
         JPanel informationInputContainer = getCustomerInfoPanel();
-        JPanel invoiceTablePanel = getInvoiceTablePanel(); // logic for rows
-        JPanel bottomPanel = getBottomPanel(); // logic for totals
+        JPanel invoiceTablePanel = getInvoiceTablePanel();
+        JPanel bottomPanel = getBottomPanel();
 
-        // Assemble Content
+        // 7. Content panel assembly
         JPanel contentPanel = new JPanel(new BorderLayout(0, 15));
         contentPanel.setOpaque(false);
-        contentPanel.add(informationInputContainer, BorderLayout.NORTH);
+        contentPanel.add(titlePanel, BorderLayout.NORTH);
+        contentPanel.add(informationInputContainer, BorderLayout.BEFORE_FIRST_LINE);
         contentPanel.add(invoiceTablePanel, BorderLayout.CENTER);
         contentPanel.add(bottomPanel, BorderLayout.SOUTH);
 
-        // Main Container with padding
-        JPanel containerPanel = new JPanel(new BorderLayout());
-        containerPanel.setBackground(Color.WHITE);
-        containerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        containerPanel.add(navWrapper, BorderLayout.NORTH);
-        containerPanel.add(contentPanel, BorderLayout.CENTER);
+        // 8. Assemble main container
+        mainContainer.add(navBarPanel, BorderLayout.NORTH);
+        mainContainer.add(contentPanel, BorderLayout.CENTER);
 
-        add(containerPanel);
+        add(mainContainer);
     }
 
     /**

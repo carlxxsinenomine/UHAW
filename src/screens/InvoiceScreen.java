@@ -59,35 +59,12 @@ public class InvoiceScreen extends JPanel {
     private JPanel createTopPanel() {
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
-        topPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 15, 20));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
 
         JLabel titleLabel = new JLabel("My Purchase History");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
-
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        searchPanel.setOpaque(false);
-
-        JTextField searchField = new JTextField(20);
-        searchField.setFont(new Font("Arial", Font.PLAIN, 14));
-        searchField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(180, 180, 180), 1),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)
-        ));
-
-        JButton searchButton = new JButton("Search");
-        searchButton.setFont(new Font("Arial", Font.BOLD, 14));
-        searchButton.setBackground(new Color(130, 170, 255));
-        searchButton.setForeground(Color.WHITE);
-        searchButton.setFocusPainted(false);
-        searchButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
-        searchButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        searchPanel.add(new JLabel("Search:"));
-        searchPanel.add(searchField);
-        searchPanel.add(searchButton);
-
-        topPanel.add(titleLabel, BorderLayout.WEST);
-        topPanel.add(searchPanel, BorderLayout.EAST);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        topPanel.add(titleLabel, BorderLayout.CENTER);
 
         return topPanel;
     }
@@ -98,7 +75,7 @@ public class InvoiceScreen extends JPanel {
     private JPanel createTablePanel() {
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setOpaque(false);
-        tablePanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
+        tablePanel.setBorder(BorderFactory.createEmptyBorder(0, 40, 30, 40));
 
         String[] columnNames = {"Purchase ID", "Customer Name", "Items Count", "Date", "Total Amount", "Status"};
         tableModel = new DefaultTableModel(columnNames, 0) {
