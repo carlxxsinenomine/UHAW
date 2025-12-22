@@ -1,21 +1,27 @@
 package screens;
 
 import components.NavBarPanel;
-import javax.swing.*;
 import java.awt.*;
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.table.*;
 
 /**
- * InvoiceScreen class represents the invoice summary interface.
- * This screen displays a summary of invoices with company names and item names.
+ * PurchaseHistoryScreen class represents the purchase history interface.
+ * This screen displays all user purchase history in a table format.
  *
  * @author Your Name
- * @version 1.0
+ * @version 2.0
  */
 public class InvoiceScreen extends JPanel {
+    private DefaultTableModel tableModel;
+    private JTable purchaseTable;
 
     /**
-     * Constructor that initializes and displays the InvoiceScreen.
-     * Sets up the navigation bar, title, and invoice summary table.
+     * Constructor that initializes and displays the PurchaseHistoryScreen.
+     * Sets up the navigation bar, title, and purchase history table.
      */
     public InvoiceScreen() {
         setLayout(new BorderLayout());
@@ -27,25 +33,18 @@ public class InvoiceScreen extends JPanel {
         mainContainer.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
         // Navigation bar
-        JPanel navBarPanel = new NavBarPanel("Invoices");
+        JPanel navBarPanel = new NavBarPanel("Purchase History");
 
-        // Title panel
-        JPanel titlePanel = new JPanel(new BorderLayout());
-        titlePanel.setOpaque(false);
-        titlePanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
-
-        JLabel titleLabel = new JLabel("Summary of invoice");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        titlePanel.add(titleLabel, BorderLayout.CENTER);
+        // Title and action buttons panel
+        JPanel topPanel = createTopPanel();
 
         // Table panel
         JPanel tablePanel = createTablePanel();
 
         // Content panel
-        JPanel contentPanel = new JPanel(new BorderLayout());
+        JPanel contentPanel = new JPanel(new BorderLayout(0, 15));
         contentPanel.setOpaque(false);
-        contentPanel.add(titlePanel, BorderLayout.NORTH);
+        contentPanel.add(topPanel, BorderLayout.NORTH);
         contentPanel.add(tablePanel, BorderLayout.CENTER);
 
         mainContainer.add(navBarPanel, BorderLayout.NORTH);
@@ -55,103 +54,301 @@ public class InvoiceScreen extends JPanel {
     }
 
     /**
-     * Creates and returns the invoice summary table panel.
-     * Contains a header row with "Company Name" and "Item Name" columns,
-     * and a scrollable area for invoice entries.
-     *
-     * @return JPanel containing the invoice summary table
+     * Creates the top panel with title and search functionality.
+     */
+    private JPanel createTopPanel() {
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setOpaque(false);
+        topPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 15, 20));
+
+        JLabel titleLabel = new JLabel("My Purchase History");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        searchPanel.setOpaque(false);
+
+        JTextField searchField = new JTextField(20);
+        searchField.setFont(new Font("Arial", Font.PLAIN, 14));
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(180, 180, 180), 1),
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+
+        JButton searchButton = new JButton("Search");
+        searchButton.setFont(new Font("Arial", Font.BOLD, 14));
+        searchButton.setBackground(new Color(130, 170, 255));
+        searchButton.setForeground(Color.WHITE);
+        searchButton.setFocusPainted(false);
+        searchButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        searchButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        searchPanel.add(new JLabel("Search:"));
+        searchPanel.add(searchField);
+        searchPanel.add(searchButton);
+
+        topPanel.add(titleLabel, BorderLayout.WEST);
+        topPanel.add(searchPanel, BorderLayout.EAST);
+
+        return topPanel;
+    }
+
+    /**
+     * Creates the table panel displaying all purchases.
      */
     private JPanel createTablePanel() {
-        JPanel tableContainer = new JPanel(new BorderLayout());
-        tableContainer.setOpaque(false);
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setOpaque(false);
+        tablePanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
 
-        // Header panel
-        JPanel headerPanel = new JPanel(new GridLayout(1, 2, 0, 0));
-        headerPanel.setBackground(new Color(200, 200, 200));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+        String[] columnNames = {"Purchase ID", "Customer Name", "Items Count", "Date", "Total Amount", "Status"};
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
 
-        JLabel companyNameHeader = new JLabel("Company Name");
-        companyNameHeader.setFont(new Font("Arial", Font.BOLD, 14));
-        companyNameHeader.setHorizontalAlignment(SwingConstants.LEFT);
+        // Load actual purchase data from files
+        loadPurchasesFromFolder();
 
-        JLabel itemNameHeader = new JLabel("Item Name");
-        itemNameHeader.setFont(new Font("Arial", Font.BOLD, 14));
-        itemNameHeader.setHorizontalAlignment(SwingConstants.LEFT);
+        purchaseTable = new JTable(tableModel);
+        purchaseTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        purchaseTable.setRowHeight(40);
+        purchaseTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        purchaseTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        purchaseTable.getTableHeader().setBackground(new Color(200, 200, 200));
+        purchaseTable.getTableHeader().setReorderingAllowed(false);
 
-        headerPanel.add(companyNameHeader);
-        headerPanel.add(itemNameHeader);
+        // Color code status column
+        purchaseTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-        // Content area (empty for now, will contain invoice entries)
-        JPanel contentArea = new JPanel();
-        contentArea.setLayout(new BoxLayout(contentArea, BoxLayout.Y_AXIS));
-        contentArea.setBackground(Color.WHITE);
-        contentArea.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+                if (column == 5 && value != null) { // Status column
+                    if (value.equals("Completed")) {
+                        c.setForeground(new Color(0, 150, 0));
+                    } else if (value.equals("Pending")) {
+                        c.setForeground(new Color(255, 140, 0));
+                    } else {
+                        c.setForeground(Color.BLACK);
+                    }
+                } else {
+                    c.setForeground(Color.BLACK);
+                }
 
-        // Example: Add a placeholder message
-        JLabel placeholderLabel = new JLabel("No invoices to display");
-        placeholderLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-        placeholderLabel.setForeground(Color.GRAY);
-        placeholderLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                if (!isSelected) {
+                    c.setBackground(Color.WHITE);
+                }
 
-        JPanel placeholderPanel = new JPanel();
-        placeholderPanel.setOpaque(false);
-        placeholderPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
-        placeholderPanel.add(placeholderLabel);
+                return c;
+            }
+        });
 
-        contentArea.add(placeholderPanel);
+        JScrollPane scrollPane = new JScrollPane(purchaseTable);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
 
-        // Scroll pane for content
-        JScrollPane scrollPane = new JScrollPane(contentArea);
-        scrollPane.setBorder(BorderFactory.createMatteBorder(0, 1, 1, 1, new Color(200, 200, 200)));
-        scrollPane.setOpaque(false);
-        scrollPane.getViewport().setOpaque(false);
+        // Add action buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        buttonPanel.setOpaque(false);
 
-        tableContainer.add(headerPanel, BorderLayout.NORTH);
-        tableContainer.add(scrollPane, BorderLayout.CENTER);
+        JButton refreshButton = new JButton("Refresh");
+        refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
+        refreshButton.setBackground(new Color(130, 170, 255));
+        refreshButton.setForeground(Color.WHITE);
+        refreshButton.setFocusPainted(false);
+        refreshButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        refreshButton.addActionListener(e -> refreshPurchases());
 
-        return tableContainer;
+        JButton viewButton = new JButton("View Purchase");
+        viewButton.setFont(new Font("Arial", Font.BOLD, 14));
+        viewButton.setBackground(new Color(34, 139, 34));
+        viewButton.setForeground(Color.WHITE);
+        viewButton.setFocusPainted(false);
+        viewButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        viewButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        viewButton.addActionListener(e -> viewSelectedPurchase());
+
+        buttonPanel.add(refreshButton);
+        buttonPanel.add(viewButton);
+
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        tablePanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        return tablePanel;
     }
 
     /**
-     * Creates and returns a single invoice row entry.
-     * Each row displays a company name and item name.
-     *
-     * @param companyName the name of the company
-     * @param itemName the name of the item
-     * @return JPanel representing a single invoice row
+     * Loads all purchases from the invoices folder.
      */
-    private JPanel createInvoiceRow(String companyName, String itemName) {
-        JPanel rowPanel = new JPanel(new GridLayout(1, 2, 0, 0));
-        rowPanel.setOpaque(false);
-        rowPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(230, 230, 230)),
-                BorderFactory.createEmptyBorder(15, 0, 15, 0)
-        ));
-        rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-
-        JLabel companyLabel = new JLabel(companyName);
-        companyLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        companyLabel.setHorizontalAlignment(SwingConstants.LEFT);
-
-        JLabel itemLabel = new JLabel(itemName);
-        itemLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        itemLabel.setHorizontalAlignment(SwingConstants.LEFT);
-
-        rowPanel.add(companyLabel);
-        rowPanel.add(itemLabel);
-
-        return rowPanel;
+    private void loadPurchasesFromFolder() {
+        tableModel.setRowCount(0);
+        File invoicesDir = new File("invoices");
+        
+        if (!invoicesDir.exists()) {
+            invoicesDir = new File("src/main/invoices");
+        }
+        
+        if (!invoicesDir.exists() || !invoicesDir.isDirectory()) {
+            return;
+        }
+        
+        File[] invoiceFiles = invoicesDir.listFiles((dir, name) -> name.endsWith(".txt"));
+        if (invoiceFiles == null || invoiceFiles.length == 0) {
+            return;
+        }
+        
+        Arrays.sort(invoiceFiles, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+        
+        for (File file : invoiceFiles) {
+            try {
+                PurchaseData data = parsePurchaseFile(file);
+                if (data != null) {
+                    tableModel.addRow(new Object[]{
+                        data.purchaseId,
+                        data.customerName,
+                        data.itemsCount,
+                        data.date,
+                        String.format("PHP %,.2f", data.totalAmount),
+                        "Completed"
+                    });
+                }
+            } catch (Exception e) {
+                System.err.println("Error loading purchase: " + file.getName() + " - " + e.getMessage());
+            }
+        }
     }
 
     /**
-     * Adds an invoice entry to the summary table.
-     * This method can be called to dynamically add invoice entries.
-     *
-     * @param companyName the name of the company
-     * @param itemName the name of the item
+     * Parses a purchase file and extracts relevant data.
      */
-    public void addInvoiceEntry(String companyName, String itemName) {
-        // This method would be implemented to add rows dynamically
-        // For now, it's a placeholder for future functionality
+    private PurchaseData parsePurchaseFile(File file) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            PurchaseData data = new PurchaseData();
+            String line;
+            int lineNum = 0;
+            int itemsCount = 0;
+            
+            while ((line = reader.readLine()) != null) {
+                lineNum++;
+                line = line.trim();
+                
+                if (lineNum == 3 && line.startsWith("INV")) {
+                    data.purchaseId = line;
+                }
+                else if (line.contains("Billed to")) {
+                    String nextLine = reader.readLine();
+                    if (nextLine != null) {
+                        String[] parts = nextLine.trim().split("\\s{2,}");
+                        if (parts.length > 0) {
+                            data.customerName = parts[0].trim();
+                        }
+                    }
+                }
+                else if (line.matches("^\\s*[A-Za-z0-9\\s.-]+\\s+\\d+\\s+[0-9,\\.]+\\s+PHP.*")) {
+                    // Count items by matching item rows
+                    itemsCount++;
+                }
+                else if (line.contains("Amount due")) {
+                    String amountStr = line.substring(line.indexOf("Amount due") + 10).trim();
+                    amountStr = amountStr.replace("PHP", "").replace(",", "").trim();
+                    try {
+                        data.totalAmount = Double.parseDouble(amountStr);
+                    } catch (NumberFormatException e) {
+                        data.totalAmount = 0.0;
+                    }
+                }
+            }
+            
+            data.itemsCount = itemsCount;
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            data.date = sdf.format(new Date(file.lastModified()));
+            
+            return data;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Refreshes the purchase list.
+     */
+    private void refreshPurchases() {
+        loadPurchasesFromFolder();
+        JOptionPane.showMessageDialog(this, 
+            "Purchase history refreshed!",
+            "Refresh Complete", 
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    /**
+     * Views the selected purchase details.
+     */
+    private void viewSelectedPurchase() {
+        int selectedRow = purchaseTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "Please select a purchase to view.",
+                "No Selection", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        String purchaseId = (String) tableModel.getValueAt(selectedRow, 0);
+        File purchaseFile = new File("invoices", purchaseId + ".txt");
+        
+        if (!purchaseFile.exists()) {
+            purchaseFile = new File("src/main/invoices", purchaseId + ".txt");
+        }
+        
+        if (!purchaseFile.exists()) {
+            JOptionPane.showMessageDialog(this, 
+                "Purchase file not found: " + purchaseId + ".txt",
+                "File Not Found", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        try {
+            StringBuilder content = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new FileReader(purchaseFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    content.append(line).append("\n");
+                }
+            }
+            
+            JTextArea textArea = new JTextArea(content.toString());
+            textArea.setEditable(false);
+            textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+            textArea.setCaretPosition(0);
+            
+            JScrollPane scrollPane = new JScrollPane(textArea);
+            scrollPane.setPreferredSize(new Dimension(700, 600));
+            
+            JOptionPane.showMessageDialog(this, 
+                scrollPane,
+                "Purchase: " + purchaseId, 
+                JOptionPane.PLAIN_MESSAGE);
+                
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error reading purchase file: " + e.getMessage(),
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Inner class to store purchase data.
+     */
+    private static class PurchaseData {
+        String purchaseId = "";
+        String customerName = "Unknown";
+        String date = "";
+        double totalAmount = 0.0;
+        int itemsCount = 0;
     }
 }

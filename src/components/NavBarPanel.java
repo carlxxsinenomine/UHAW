@@ -126,17 +126,10 @@ public class NavBarPanel extends JPanel {
             }
         });
 
-        JButton invoicesButton = new NavButton("Invoices");
-        invoicesButton.addActionListener(e -> {
+        JButton purchaseHistoryButton = new NavButton("Purchase History");
+        purchaseHistoryButton.addActionListener(e -> {
             if (MainActivity.getInstance() != null) {
-                MainActivity.getInstance().showScreen(MainActivity.INVOICE_SCREEN);
-            }
-        });
-
-        JButton summaryButton = new NavButton("Summary");
-        summaryButton.addActionListener(e -> {
-            if (MainActivity.getInstance() != null) {
-                MainActivity.getInstance().showScreen(MainActivity.SUMMARY_SCREEN);
+                MainActivity.getInstance().showScreen(MainActivity.PURCHASE_HISTORY_SCREEN);
             }
         });
 
@@ -144,8 +137,7 @@ public class NavBarPanel extends JPanel {
 
         leftPanel.add(userLabel);
         leftPanel.add(homeButton);
-        leftPanel.add(invoicesButton);
-        leftPanel.add(summaryButton);
+        leftPanel.add(purchaseHistoryButton);
 
         return leftPanel;
     }

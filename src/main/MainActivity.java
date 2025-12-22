@@ -21,8 +21,7 @@ public class MainActivity extends JFrame {
 
     // Screen identifiers - User Side
     public static final String USER_SCREEN = "USER_SCREEN";
-    public static final String INVOICE_SCREEN = "INVOICE_SCREEN";
-    public static final String SUMMARY_SCREEN = "SUMMARY_SCREEN";
+    public static final String PURCHASE_HISTORY_SCREEN = "PURCHASE_HISTORY_SCREEN";
 
     // Screen identifiers - Admin Side
     public static final String ADMIN_LOGIN_SCREEN = "ADMIN_LOGIN_SCREEN";
@@ -57,12 +56,10 @@ public class MainActivity extends JFrame {
 
         // --- 2. Create and Add User Side Screens ---
         UserScreen userScreen = new UserScreen();
-        InvoiceScreen invoiceScreen = new InvoiceScreen();
-        SummaryScreen summaryScreen = new SummaryScreen();
+        InvoiceScreen purchaseHistoryScreen = new InvoiceScreen();
 
         cardPanel.add(userScreen, USER_SCREEN);
-        cardPanel.add(invoiceScreen, INVOICE_SCREEN);
-        cardPanel.add(summaryScreen, SUMMARY_SCREEN);
+        cardPanel.add(purchaseHistoryScreen, PURCHASE_HISTORY_SCREEN);
 
         // --- 3. Create and Add Admin Side Screens ---
         AdminLoginScreen adminLoginScreen = new AdminLoginScreen();

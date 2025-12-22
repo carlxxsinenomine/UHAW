@@ -99,7 +99,7 @@ public class AdminInvoicesScreen extends JPanel {
         tablePanel.setOpaque(false);
         tablePanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
 
-        String[] columnNames = {"Invoice ID", "Company Name", "Customer Name", "Date", "Total Amount", "Status"};
+        String[] columnNames = {"Invoice ID", "Customer Name", "Items Count", "Date", "Total Amount", "Status"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -170,8 +170,18 @@ public class AdminInvoicesScreen extends JPanel {
         viewButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         viewButton.addActionListener(e -> viewSelectedInvoice());
 
+        JButton deleteButton = new JButton("Delete Invoice");
+        deleteButton.setFont(new Font("Arial", Font.BOLD, 14));
+        deleteButton.setBackground(new Color(220, 50, 50));
+        deleteButton.setForeground(Color.WHITE);
+        deleteButton.setFocusPainted(false);
+        deleteButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        deleteButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        deleteButton.addActionListener(e -> deleteSelectedInvoice());
+
         buttonPanel.add(refreshButton);
         buttonPanel.add(viewButton);
+        buttonPanel.add(deleteButton);
 
         tablePanel.add(scrollPane, BorderLayout.CENTER);
         tablePanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -185,6 +195,10 @@ public class AdminInvoicesScreen extends JPanel {
     private void loadInvoicesFromFolder() {
         tableModel.setRowCount(0);
         File invoicesDir = new File("invoices");
+        
+        if (!invoicesDir.exists()) {
+            invoicesDir = new File("src/main/invoices");
+        }
         
         if (!invoicesDir.exists() || !invoicesDir.isDirectory()) {
             return;
@@ -203,10 +217,10 @@ public class AdminInvoicesScreen extends JPanel {
                 if (data != null) {
                     tableModel.addRow(new Object[]{
                         data.invoiceId,
-                        "Peter Loves Carl Co.",
                         data.customerName,
+                        data.itemsCount,
                         data.date,
-                        String.format("IDR %,.2f", data.totalAmount),
+                        String.format("PHP %,.2f", data.totalAmount),
                         "Paid"
                     });
                 }
@@ -224,6 +238,7 @@ public class AdminInvoicesScreen extends JPanel {
             InvoiceData data = new InvoiceData();
             String line;
             int lineNum = 0;
+            int itemsCount = 0;
             
             while ((line = reader.readLine()) != null) {
                 lineNum++;
@@ -241,9 +256,13 @@ public class AdminInvoicesScreen extends JPanel {
                         }
                     }
                 }
+                else if (line.matches("^\\s*[A-Za-z0-9\\s.-]+\\s+\\d+\\s+[0-9,\\.]+\\s+PHP.*")) {
+                    // Count items by matching item rows
+                    itemsCount++;
+                }
                 else if (line.contains("Amount due")) {
                     String amountStr = line.substring(line.indexOf("Amount due") + 10).trim();
-                    amountStr = amountStr.replace("IDR", "").replace(",", "").trim();
+                    amountStr = amountStr.replace("PHP", "").replace(",", "").trim();
                     try {
                         data.totalAmount = Double.parseDouble(amountStr);
                     } catch (NumberFormatException e) {
@@ -252,6 +271,7 @@ public class AdminInvoicesScreen extends JPanel {
                 }
             }
             
+            data.itemsCount = itemsCount;
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             data.date = sdf.format(new Date(file.lastModified()));
             
@@ -289,8 +309,12 @@ public class AdminInvoicesScreen extends JPanel {
         File invoiceFile = new File("invoices", invoiceId + ".txt");
         
         if (!invoiceFile.exists()) {
+            invoiceFile = new File("src/main/invoices", invoiceId + ".txt");
+        }
+        
+        if (!invoiceFile.exists()) {
             JOptionPane.showMessageDialog(this, 
-                "Invoice file not found: " + invoiceFile.getName(),
+                "Invoice file not found: " + invoiceId + ".txt",
                 "File Not Found", 
                 JOptionPane.ERROR_MESSAGE);
             return;
@@ -327,6 +351,66 @@ public class AdminInvoicesScreen extends JPanel {
     }
 
     /**
+     * Deletes the selected invoice file.
+     */
+    private void deleteSelectedInvoice() {
+        int selectedRow = invoiceTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "Please select an invoice to delete.",
+                "No Selection", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        String invoiceId = (String) tableModel.getValueAt(selectedRow, 0);
+        
+        int confirmResult = JOptionPane.showConfirmDialog(this, 
+            "Are you sure you want to delete invoice " + invoiceId + "?\nThis action cannot be undone.",
+            "Confirm Delete", 
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
+        
+        if (confirmResult != JOptionPane.YES_OPTION) {
+            return;
+        }
+        
+        File invoiceFile = new File("invoices", invoiceId + ".txt");
+        
+        if (!invoiceFile.exists()) {
+            invoiceFile = new File("src/main/invoices", invoiceId + ".txt");
+        }
+        
+        if (!invoiceFile.exists()) {
+            JOptionPane.showMessageDialog(this, 
+                "Invoice file not found: " + invoiceId + ".txt",
+                "File Not Found", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        try {
+            if (invoiceFile.delete()) {
+                JOptionPane.showMessageDialog(this, 
+                    "Invoice " + invoiceId + " has been deleted successfully.",
+                    "Delete Successful", 
+                    JOptionPane.INFORMATION_MESSAGE);
+                refreshInvoices();
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "Failed to delete invoice file: " + invoiceId + ".txt",
+                    "Delete Failed", 
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error deleting invoice: " + e.getMessage(),
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
      * Inner class to store invoice data.
      */
     private static class InvoiceData {
@@ -334,5 +418,6 @@ public class AdminInvoicesScreen extends JPanel {
         String customerName = "Unknown";
         String date = "";
         double totalAmount = 0.0;
+        int itemsCount = 0;
     }
 }

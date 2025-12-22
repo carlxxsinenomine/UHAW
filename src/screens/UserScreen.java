@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.swing.*;
-import main.MainActivity;
 
 /**
  * UserScreen class represents the main invoice generation interface.
@@ -54,7 +53,7 @@ public class UserScreen extends JPanel {
         navWrapper.add(navBarPanel, BorderLayout.CENTER);
 
         // Sub-header / Company Title
-        JLabel companyName = new JLabel("Generate New Invoice for Peter Loves Carl Co.");
+        JLabel companyName = new JLabel("Create Purchase for Peter Loves Carl Co.");
         companyName.setFont(new Font("Arial", Font.BOLD, 32));
         companyName.setHorizontalAlignment(SwingConstants.CENTER);
         companyName.setBorder(BorderFactory.createCompoundBorder(
@@ -385,11 +384,7 @@ public class UserScreen extends JPanel {
         JButton checkoutButton = createActionButton("Checkout", new Color(34, 139, 34));
         checkoutButton.addActionListener(e -> generateInvoice());
 
-        JButton addToSummaryButton = createActionButton("Add to Summary", new Color(130, 170, 255));
-        addToSummaryButton.addActionListener(e -> MainActivity.getInstance().showScreen(MainActivity.SUMMARY_SCREEN));
-
         buttonsPanel.add(checkoutButton);
-        buttonsPanel.add(addToSummaryButton);
 
         JPanel wrapperPanel = new JPanel();
         wrapperPanel.setLayout(new BoxLayout(wrapperPanel, BoxLayout.X_AXIS));
@@ -521,8 +516,7 @@ public class UserScreen extends JPanel {
                 return;
             }
             
-            double discount = subtotal * 0.10;
-            double total = subtotal - discount;
+            double total = subtotal;
             
             File invoicesDir = new File("invoices");
             if (!invoicesDir.exists()) {
@@ -559,7 +553,6 @@ public class UserScreen extends JPanel {
             
             writer.println();
             writer.println(" ".repeat(55) + "Subtotal" + String.format("%,20.3f PHP", subtotal));
-            writer.println(" ".repeat(55) + "Discount -10%" + String.format("%,15.3f PHP", discount));
             writer.println(" ".repeat(55) + "Total" + String.format("%,23.3f PHP", total));
             writer.println(" ".repeat(55) + "Amount due" + String.format("%,16.3f PHP", total));
             writer.println();
