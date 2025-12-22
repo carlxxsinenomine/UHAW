@@ -2,9 +2,7 @@ package main;
 
 import java.awt.*;
 import javax.swing.*;
-import screens.InvoiceScreen;
-import screens.SummaryScreen;
-import screens.UserScreen;
+import screens.*;
 
 /**
  * MainActivity serves as the main entry point and navigation controller
@@ -18,10 +16,17 @@ public class MainActivity extends JFrame {
     private CardLayout cardLayout;
     private JPanel cardPanel;
 
-    // Screen identifiers
+    // Screen identifiers - User Side
     public static final String USER_SCREEN = "USER_SCREEN";
     public static final String INVOICE_SCREEN = "INVOICE_SCREEN";
     public static final String SUMMARY_SCREEN = "SUMMARY_SCREEN";
+    
+    // Screen identifiers - Admin Side
+    public static final String ADMIN_LOGIN_SCREEN = "ADMIN_LOGIN_SCREEN";
+    public static final String ADMIN_DASHBOARD_SCREEN = "ADMIN_DASHBOARD_SCREEN";
+    public static final String ADMIN_INVENTORY_SCREEN = "ADMIN_INVENTORY_SCREEN";
+    public static final String ADMIN_INVOICES_SCREEN = "ADMIN_INVOICES_SCREEN";
+    public static final String ADMIN_USERS_SCREEN = "ADMIN_USERS_SCREEN";
 
     // Singleton instance for global access
     private static MainActivity instance;
@@ -43,7 +48,7 @@ public class MainActivity extends JFrame {
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
 
-        // Create and add all screens
+        // Create and add user side screens
         UserScreen userScreen = new UserScreen();
         InvoiceScreen invoiceScreen = new InvoiceScreen();
         SummaryScreen summaryScreen = new SummaryScreen();
@@ -51,6 +56,19 @@ public class MainActivity extends JFrame {
         cardPanel.add(userScreen, USER_SCREEN);
         cardPanel.add(invoiceScreen, INVOICE_SCREEN);
         cardPanel.add(summaryScreen, SUMMARY_SCREEN);
+        
+        // Create and add admin side screens
+        AdminLoginScreen adminLoginScreen = new AdminLoginScreen();
+        AdminDashboardScreen adminDashboardScreen = new AdminDashboardScreen();
+        AdminInventoryScreen adminInventoryScreen = new AdminInventoryScreen();
+        AdminInvoicesScreen adminInvoicesScreen = new AdminInvoicesScreen();
+        AdminUsersScreen adminUsersScreen = new AdminUsersScreen();
+        
+        cardPanel.add(adminLoginScreen, ADMIN_LOGIN_SCREEN);
+        cardPanel.add(adminDashboardScreen, ADMIN_DASHBOARD_SCREEN);
+        cardPanel.add(adminInventoryScreen, ADMIN_INVENTORY_SCREEN);
+        cardPanel.add(adminInvoicesScreen, ADMIN_INVOICES_SCREEN);
+        cardPanel.add(adminUsersScreen, ADMIN_USERS_SCREEN);
 
         // Add card panel to frame
         add(cardPanel);
