@@ -8,59 +8,84 @@ import main.MainActivity;
 
 /**
  * MainMenuScreen represents the modern entry point of the application.
- * Features a split-pane design to reduce dead space and improve aesthetics.
+ * Features a split-pane design with scrollable information on the left
+ * and navigation on the right.
  *
  * @author Your Name
- * @version 2.0
+ * @version 3.0
  */
 public class MainMenuScreen extends JPanel {
 
     // Brand Colors
     private static final Color PRIMARY_BLUE = new Color(130, 170, 255);
-    private static final Color DARKER_BLUE = new Color(80, 120, 220);
     private static final Color TEXT_DARK = new Color(50, 50, 50);
 
     public MainMenuScreen() {
         setLayout(new GridLayout(1, 2)); // Split 50/50
 
-        // --- LEFT PANEL (Branding) ---
-        JPanel leftPanel = new JPanel();
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        leftPanel.setBackground(PRIMARY_BLUE);
-        leftPanel.setBorder(BorderFactory.createEmptyBorder(0, 40, 0, 40));
+        // ==========================================
+        // LEFT PANEL (Scrollable Info / About Side)
+        // ==========================================
 
-        // Center vertical alignment for left panel content
-        leftPanel.add(Box.createVerticalGlue());
+        // 1. Create the content panel for the left side
+        JPanel leftContentPanel = new JPanel();
+        leftContentPanel.setLayout(new BoxLayout(leftContentPanel, BoxLayout.Y_AXIS));
+        leftContentPanel.setBackground(PRIMARY_BLUE);
+        leftContentPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
-        JLabel logoLabel = new JLabel("PLC"); // Placeholder for logo
-        logoLabel.setFont(new Font("Arial", Font.BOLD, 80));
-        logoLabel.setForeground(Color.WHITE);
-        logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // 2. Add Content Elements
 
-        JLabel titleLabel = new JLabel("Invoice System");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 36));
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Title: UHAW...
+        JTextArea titleLabel = createTextComponent(
+                "UHAW: Unified Hardware for Automated Wholesale/Retail",
+                new Font("Arial", Font.BOLD, 42)
+        );
 
-        JLabel subtitleLabel = new JLabel("Management Edition 2025");
-        subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        subtitleLabel.setForeground(new Color(230, 240, 255));
-        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Subtitle: POS System
+        JTextArea subTitleLabel = createTextComponent(
+                "A point-of-sale (POS) system",
+                new Font("Arial", Font.ITALIC, 24)
+        );
+        subTitleLabel.setForeground(new Color(230, 240, 255)); // Lighter blue/white
 
-        JLabel descLabel = new JLabel("<html><center>Welcome to the Peter Loves Carl Co.<br>comprehensive invoice and inventory<br>management solution.</center></html>");
-        descLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        descLabel.setForeground(new Color(230, 240, 255));
-        descLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Description
+        String descText = "– A hardware-software solution that processes sales " +
+                "transactions, and generates sales invoice – supporting retail operations.";
+        JTextArea descLabel = createTextComponent(
+                descText,
+                new Font("Arial", Font.PLAIN, 18)
+        );
         descLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
-        leftPanel.add(logoLabel);
-        leftPanel.add(Box.createVerticalStrut(20));
-        leftPanel.add(titleLabel);
-        leftPanel.add(subtitleLabel);
-        leftPanel.add(descLabel);
-        leftPanel.add(Box.createVerticalGlue());
+        // Add to panel
+        leftContentPanel.add(Box.createVerticalGlue()); // Push content to center
+        leftContentPanel.add(titleLabel);
+        leftContentPanel.add(Box.createVerticalStrut(10));
+        leftContentPanel.add(subTitleLabel);
+        leftContentPanel.add(Box.createVerticalStrut(20));
+        leftContentPanel.add(descLabel);
+        leftContentPanel.add(Box.createVerticalGlue());
 
-        // --- RIGHT PANEL (Navigation) ---
+        // 3. Wrap in ScrollPane
+        JScrollPane leftScrollPane = new JScrollPane(leftContentPanel);
+        leftScrollPane.setBorder(null); // Remove border
+        leftScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        leftScrollPane.getVerticalScrollBar().setUnitIncrement(16); // Smooth scrolling
+
+        // Custom styling for scrollbar to blend in
+        leftScrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0));
+        leftScrollPane.getVerticalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = new Color(255, 255, 255, 100);
+                this.trackColor = PRIMARY_BLUE;
+            }
+        });
+
+        // ==========================================
+        // RIGHT PANEL (Navigation Buttons)
+        // ==========================================
+
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new GridBagLayout());
         rightPanel.setBackground(Color.WHITE);
@@ -76,20 +101,30 @@ public class MainMenuScreen extends JPanel {
         menuTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
 
         menuContainer.add(menuTitle);
+
+        // --- User Panel Button ---
         menuContainer.add(createStyledMenuButton("User Panel", "Create & View Invoices", () ->
                 MainActivity.getInstance().showScreen(MainActivity.USER_SCREEN)));
 
         menuContainer.add(Box.createVerticalStrut(15));
 
+        // --- Admin Panel Button ---
         menuContainer.add(createStyledMenuButton("Admin Panel", "Inventory & Users", () ->
                 MainActivity.getInstance().showScreen(MainActivity.ADMIN_LOGIN_SCREEN)));
 
         menuContainer.add(Box.createVerticalStrut(15));
 
+        // --- About Button (Uniform Style) ---
+        menuContainer.add(createStyledMenuButton("About", "Team & Version Info", () ->
+                showAboutDialog()));
+
+        menuContainer.add(Box.createVerticalStrut(15));
+
+        // --- Exit Button ---
         menuContainer.add(createStyledMenuButton("Exit System", "Close Application", () ->
                 System.exit(0)));
 
-        // Copyright footer on right side
+        // Copyright footer
         JLabel copyLabel = new JLabel("© 2025 Peter Loves Carl Co.");
         copyLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         copyLabel.setForeground(Color.LIGHT_GRAY);
@@ -99,9 +134,25 @@ public class MainMenuScreen extends JPanel {
 
         rightPanel.add(menuContainer);
 
-        // Add both panels
-        add(leftPanel);
+        // Add split panels to main layout
+        add(leftScrollPane);
         add(rightPanel);
+    }
+
+    /**
+     * Helper to create styled, wrapped text areas that look like labels.
+     */
+    private JTextArea createTextComponent(String text, Font font) {
+        JTextArea textArea = new JTextArea(text);
+        textArea.setFont(font);
+        textArea.setForeground(Color.WHITE);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setOpaque(false);
+        textArea.setEditable(false);
+        textArea.setFocusable(false);
+        textArea.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return textArea;
     }
 
     /**
@@ -160,5 +211,26 @@ public class MainMenuScreen extends JPanel {
         button.addActionListener(e -> action.run());
 
         return button;
+    }
+
+    /**
+     * Shows the About Dialog with Member names.
+     */
+    private void showAboutDialog() {
+        String message = "<html><body style='width: 250px;'>" +
+                "<h2 style='color: #82AAFF;'>UHAW System</h2>" +
+                "<p><b>Developers (Members):</b></p>" +
+                "<ul>" +
+                "<li>Bañares, Peter Andrew</li>" +
+                "<li>Margarata, Sean Eric</li>" +
+                "<li>Muñoz, Carl Johannes</li>" +
+                "<li>Santos, Gebhel Anselm</li>" +
+                "</ul>" +
+                "<br>" +
+                "<p><i>Bicol University - College of Science</i><br>" +
+                "CS 108: Object Oriented Programming</p>" +
+                "</body></html>";
+
+        JOptionPane.showMessageDialog(this, message, "About UHAW", JOptionPane.INFORMATION_MESSAGE);
     }
 }

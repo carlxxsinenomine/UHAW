@@ -4,26 +4,12 @@ import java.awt.*;
 import javax.swing.*;
 import main.MainActivity;
 
-/*
-   // Syempre with the help of my beloved Claude.ai
-   // Notice kung pano ko pigseparate into components codes nya
-   // Para gawing isang buong compnent nalng tong panel nato
-   // https://claude.ai/public/artifacts/c1ebb3c7-4f66-45f3-90af-ae93586c0174
-    JFrame
-        - containerPanel
-            - navPanel
-                - leftPanel
-                    - User label, mga buttons
-                - rightPanel
-                    - Search bar
- **/
-
 /**
  * NavBarPanel represents the navigation bar component.
  * Contains navigation buttons for different screens and a search field.
  *
  * @author Your Name
- * @version 1.0
+ * @version 1.1
  */
 public class NavBarPanel extends JPanel {
     private String activeScreen;
@@ -42,12 +28,24 @@ public class NavBarPanel extends JPanel {
         // Left section with User and navigation items
         JPanel leftPanel = getJPanel();
 
-        // Right section with search bar
+        // Right section with Main Menu and search bar
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         rightPanel.setOpaque(false);
 
+        // --- NEW: Main Menu Button (Uniform Style) ---
+        // Using NavButton to match the other buttons
+        JButton mainMenuButton = new NavButton("Main Menu");
+        mainMenuButton.addActionListener(e -> {
+            if (MainActivity.getInstance() != null) {
+                MainActivity.getInstance().showScreen(MainActivity.MAIN_MENU_SCREEN);
+            }
+        });
+
         // Search field
         JTextField searchField = getSearchField();
+
+        // Add to right panel: Main Menu first (left), then Search field (right)
+        rightPanel.add(mainMenuButton);
         rightPanel.add(searchField);
 
         // Add panels to nav panel
@@ -141,19 +139,14 @@ public class NavBarPanel extends JPanel {
                 MainActivity.getInstance().showScreen(MainActivity.SUMMARY_SCREEN);
             }
         });
-        
-        JButton adminButton = new NavButton("Admin");
-        adminButton.addActionListener(e -> {
-            if (MainActivity.getInstance() != null) {
-                MainActivity.getInstance().showScreen(MainActivity.ADMIN_LOGIN_SCREEN);
-            }
-        });
+
+        // --- REMOVED ADMIN BUTTON ---
 
         leftPanel.add(userLabel);
         leftPanel.add(homeButton);
         leftPanel.add(invoicesButton);
         leftPanel.add(summaryButton);
-        leftPanel.add(adminButton);
+
         return leftPanel;
     }
 
