@@ -1,92 +1,98 @@
 [
   {
-    "itemName": "Product A",
-    "description": "High quality product",
-    "value": 150.00,
-    "category": "1"
+    "itemName": ""Product A",
+    "description": ""High quality product",
+    "value": 150.0,
+    "category": ""1"
   },
   {
-    "itemName": "Product B",
-    "description": "Standard product",
-    "value": 75.50,
-    "category": "1"
+    "itemName": ""Product B",
+    "description": ""Standard product",
+    "value": 75.5,
+    "category": ""1"
   },
   {
-    "itemName": "Service X",
-    "description": "Professional service",
-    "value": 250.00,
-    "category": "2"
+    "itemName": ""Service X",
+    "description": ""Professional service",
+    "value": 250.0,
+    "category": ""2"
   },
   {
-    "itemName": "Product C",
-    "description": "Budget friendly option",
+    "itemName": ""Product C",
+    "description": ""Budget friendly option",
     "value": 45.99,
-    "category": "2"
+    "category": ""2"
   },
   {
-    "itemName": "Service Y",
-    "description": "Premium support package",
-    "value": 500.00,
-    "category": "3"
+    "itemName": ""Service Y",
+    "description": ""Premium support package",
+    "value": 500.0,
+    "category": ""3"
   },
   {
-    "itemName": "Product D",
-    "description": "Deluxe variant",
+    "itemName": ""Product D",
+    "description": ""Deluxe variant",
     "value": 199.99,
-    "category": "3"
+    "category": ""3"
   },
   {
-    "itemName": "Product E",
-    "description": "Economy pack",
-    "value": 29.50,
-    "category": "1"
+    "itemName": ""Product E",
+    "description": ""Economy pack",
+    "value": 29.5,
+    "category": ""1"
   },
   {
-    "itemName": "Product Z",
-    "description": "Deluxe variant",
+    "itemName": ""Product Z",
+    "description": ""Deluxe variant",
     "value": 199.99,
-    "category": "3"
+    "category": ""3"
   },
   {
-    "itemName": "Product EF",
-    "description": "Economy pack",
-    "value": 29.50,
-    "category": "1"
+    "itemName": ""Product EF",
+    "description": ""Economy pack",
+    "value": 29.5,
+    "category": ""1"
   },
   {
-    "itemName": "Service Z",
-    "description": "Consulting hours package",
-    "value": 350.00,
-    "category": "2"
+    "itemName": ""Service Z",
+    "description": ""Consulting hours package",
+    "value": 350.0,
+    "category": ""2"
   },
   {
-    "itemName": "Product F",
-    "description": "Mid-range option with premium features",
+    "itemName": ""Product F",
+    "description": ""Mid-range option with premium features",
     "value": 120.75,
-    "category": "1"
+    "category": ""1"
   },
   {
-    "itemName": "Product G",
-    "description": "Professional grade equipment",
+    "itemName": ""Product G",
+    "description": ""Professional grade equipment",
     "value": 299.99,
-    "category": "3"
+    "category": ""3"
   },
   {
-    "itemName": "Service W",
-    "description": "Basic maintenance plan",
+    "itemName": ""Service W",
+    "description": ""Basic maintenance plan",
     "value": 89.99,
-    "category": "2"
+    "category": ""2"
   },
   {
-    "itemName": "Product H",
-    "description": "Starter kit for beginners",
+    "itemName": ""Product H",
+    "description": ""Starter kit for beginners",
     "value": 65.25,
-    "category": "1"
+    "category": ""1"
   },
   {
-    "itemName": "Premium Service Bundle",
-    "description": "All-inclusive service package",
-    "value": 750.00,
-    "category": "3"
+    "itemName": ""Premium Service Bundle",
+    "description": ""All-inclusive service package",
+    "value": 750.0,
+    "category": ""3"
+  },
+  {
+    "itemName": "Product r",
+    "description": "Bathroom cleaner",
+    "value": 40.0,
+    "category": "1"
   }
 ]

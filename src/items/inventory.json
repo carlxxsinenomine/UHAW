@@ -81,12 +81,18 @@
     "itemName": ""Product H",
     "description": ""Starter kit for beginners",
     "value": 65.25,
-    "category": "1"
+    "category": ""1"
   },
   {
     "itemName": ""Premium Service Bundle",
     "description": ""All-inclusive service package",
     "value": 750.0,
     "category": ""3"
+  },
+  {
+    "itemName": "Product r",
+    "description": "Bathroom cleaner",
+    "value": 40.0,
+    "category": "1"
   }
 ]

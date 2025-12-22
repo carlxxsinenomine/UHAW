@@ -22,7 +22,7 @@ public class AdminNavBarPanel extends JPanel {
     public AdminNavBarPanel(String activeScreen) {
         this.activeScreen = activeScreen;
         setLayout(new BorderLayout());
-        setBackground(new Color(70, 130, 180));
+        setBackground(new Color(130, 170, 255));
         setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
         // Left section with Admin label and navigation items

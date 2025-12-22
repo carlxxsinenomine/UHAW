@@ -1,276 +1,232 @@
 package screens;
 
 import components.AdminNavBarPanel;
+import javax.swing.*;
 import java.awt.*;
 import java.io.*;
-import javax.swing.*;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 
 /**
  * AdminDashboardScreen displays admin dashboard with statistics and overview.
- * Shows key metrics like total invoices, inventory items, and recent activities.
+ * Now includes a FUNCTIONING Recent Activity feed based on invoice files.
  *
  * @author Your Name
- * @version 1.0
+ * @version 2.3
  */
 public class AdminDashboardScreen extends JPanel {
+
+    // --- Modern Color Palette ---
+    private static final Color BG_COLOR = new Color(245, 247, 250);
+    private static final Color CARD_BG = Color.WHITE;
+    private static final Color TEXT_PRIMARY = new Color(50, 50, 50);
+    private static final Color TEXT_SECONDARY = new Color(100, 100, 100);
+
+    // --- Accent Colors ---
+    private static final Color ACCENT_BLUE = new Color(66, 133, 244);
+    private static final Color ACCENT_GREEN = new Color(15, 157, 88);
+    private static final Color ACCENT_ORANGE = new Color(255, 160, 0);
+
+    // Dynamic Components
     private JLabel invoicesValueLabel;
     private JLabel revenueValueLabel;
+    private JPanel activityListPanel; // Panel to hold the list rows
     private Timer refreshTimer;
 
-    /**
-     * Constructor that initializes and displays the AdminDashboardScreen.
-     */
     public AdminDashboardScreen() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(BG_COLOR);
 
-        // Main container
-        JPanel mainContainer = new JPanel(new BorderLayout());
-        mainContainer.setBackground(Color.WHITE);
-        mainContainer.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-
-        // Navigation bar
+        // 1. Navigation Bar
         JPanel navBarPanel = new AdminNavBarPanel("Dashboard");
 
-        // Title panel
-        JPanel titlePanel = new JPanel(new BorderLayout());
-        titlePanel.setOpaque(false);
-        titlePanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        // 2. Main Content Wrapper
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(BG_COLOR);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
-        JLabel titleLabel = new JLabel("Admin Dashboard");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        titlePanel.add(titleLabel, BorderLayout.CENTER);
+        // --- Header Section ---
+        JLabel titleLabel = new JLabel("Overview");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(TEXT_PRIMARY);
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Statistics cards panel
+        // --- Stats Section ---
         JPanel statsPanel = createStatsPanel();
+        statsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        statsPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
 
-        // Content panel
-        JPanel contentPanel = new JPanel(new BorderLayout(0, 20));
-        contentPanel.setOpaque(false);
-        contentPanel.add(titlePanel, BorderLayout.NORTH);
-        contentPanel.add(statsPanel, BorderLayout.CENTER);
+        // --- Recent Activity Section ---
+        JPanel activityPanel = createActivityContainer();
+        activityPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        mainContainer.add(navBarPanel, BorderLayout.NORTH);
-        mainContainer.add(contentPanel, BorderLayout.CENTER);
+        // Assemble Content
+        contentPanel.add(titleLabel);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(statsPanel);
+        contentPanel.add(Box.createVerticalStrut(30));
+        contentPanel.add(activityPanel);
 
-        add(mainContainer);
-        
-        // Start auto-refresh timer (updates every 2 seconds)
+        // Add to Main Frame
+        add(navBarPanel, BorderLayout.NORTH);
+        add(contentPanel, BorderLayout.CENTER);
+
+        // Initial Load
+        refreshDashboardStats();
+        refreshActivityList();
+
+        // Start auto-refresh timer (updates every 5 seconds)
         startAutoRefresh();
     }
-    
-    /**
-     * Starts an auto-refresh timer that updates dashboard stats periodically.
-     */
-    private void startAutoRefresh() {
-        refreshTimer = new Timer(2000, e -> refreshDashboardStats());
-        refreshTimer.start();
-    }
-    
-    /**
-     * Stops the auto-refresh timer.
-     */
-    public void stopAutoRefresh() {
-        if (refreshTimer != null) {
-            refreshTimer.stop();
-        }
-    }
-    
-    /**
-     * Refreshes all dashboard statistics.
-     */
-    public void refreshDashboardStats() {
-        if (invoicesValueLabel != null && revenueValueLabel != null) {
-            int totalInvoices = getTotalInvoicesCount();
-            double totalRevenue = calculateTotalRevenue();
-            
-            invoicesValueLabel.setText(String.valueOf(totalInvoices));
-            revenueValueLabel.setText(String.format("PHP %,.2f", totalRevenue));
-        }
-    }
 
-    /**
-     * Creates the statistics panel with metric cards.
-     *
-     * @return JPanel containing statistics cards
-     */
+    // ==========================================
+    //           UI CREATION METHODS
+    // ==========================================
+
     private JPanel createStatsPanel() {
-        JPanel statsPanel = new JPanel(new GridLayout(1, 3, 20, 0));
-        statsPanel.setOpaque(false);
-        statsPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        JPanel panel = new JPanel(new GridLayout(1, 3, 20, 0));
+        panel.setBackground(BG_COLOR);
+        panel.setOpaque(false);
 
-        // Calculate metrics dynamically
-        int totalInvoices = getTotalInvoicesCount();
-        double totalRevenue = calculateTotalRevenue();
-        int inventoryItems = 7; // This is static based on the inventory.json
+        invoicesValueLabel = new JLabel("0");
+        revenueValueLabel = new JLabel("PHP 0.00");
 
-        // Total Invoices Card - store reference for updates
-        invoicesValueLabel = new JLabel(String.valueOf(totalInvoices));
-        JPanel invoicesCard = createStatCardWithLabel("Total Invoices", invoicesValueLabel, new Color(100, 200, 150));
+        panel.add(createModernCard("Total Invoices", invoicesValueLabel, "Invoices generated", ACCENT_BLUE));
+        panel.add(createModernCard("Inventory Items", new JLabel("15"), "In Stock", ACCENT_GREEN)); // Static or load from JSON
+        panel.add(createModernCard("Total Revenue", revenueValueLabel, "Accumulated Earnings", ACCENT_ORANGE));
 
-        // Inventory Items Card
-        JPanel inventoryCard = createStatCard("Inventory Items", String.valueOf(inventoryItems), new Color(130, 170, 255));
-
-        // Total Revenue Card - store reference for updates
-        revenueValueLabel = new JLabel(String.format("PHP %,.2f", totalRevenue));
-        JPanel revenueCard = createStatCardWithLabel("Total Revenue", revenueValueLabel, new Color(255, 180, 100));
-
-        statsPanel.add(invoicesCard);
-        statsPanel.add(inventoryCard);
-        statsPanel.add(revenueCard);
-
-        return statsPanel;
+        return panel;
     }
 
-    /**
-     * Creates a single statistics card.
-     *
-     * @param title the title of the stat
-     * @param value the value to display
-     * @param color the background color of the card
-     * @return JPanel representing a stat card
-     */
-    private JPanel createStatCard(String title, String value, Color color) {
-        JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(color);
+    private JPanel createModernCard(String title, JLabel valueLabel, String subtext, Color accentColor) {
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(CARD_BG);
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(color.darker(), 1),
-                BorderFactory.createEmptyBorder(20, 15, 20, 15)
+                BorderFactory.createMatteBorder(0, 5, 0, 0, accentColor),
+                BorderFactory.createEmptyBorder(20, 25, 20, 25)
         ));
 
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JPanel textPanel = new JPanel(new GridLayout(3, 1, 0, 5));
+        textPanel.setOpaque(false);
 
-        JLabel valueLabel = new JLabel(value);
+        JLabel titleLbl = new JLabel(title.toUpperCase());
+        titleLbl.setFont(new Font("Arial", Font.BOLD, 12));
+        titleLbl.setForeground(TEXT_SECONDARY);
+
         valueLabel.setFont(new Font("Arial", Font.BOLD, 28));
-        valueLabel.setForeground(Color.WHITE);
-        valueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        valueLabel.setForeground(TEXT_PRIMARY);
 
-        card.add(titleLabel);
-        card.add(Box.createVerticalStrut(8));
-        card.add(valueLabel);
+        JLabel subLbl = new JLabel(subtext);
+        subLbl.setFont(new Font("Arial", Font.PLAIN, 12));
+        subLbl.setForeground(Color.GRAY);
 
+        textPanel.add(titleLbl);
+        textPanel.add(valueLabel);
+        textPanel.add(subLbl);
+
+        card.add(textPanel, BorderLayout.CENTER);
         return card;
     }
 
-    /**
-     * Creates a single statistics card with a reference label for updates.
-     *
-     * @param title the title of the stat
-     * @param valueLabel the label to display (reference stored for updates)
-     * @param color the background color of the card
-     * @return JPanel representing a stat card
-     */
-    private JPanel createStatCardWithLabel(String title, JLabel valueLabel, Color color) {
-        JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(color);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(color.darker(), 1),
-                BorderFactory.createEmptyBorder(30, 20, 30, 20)
-        ));
-
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        valueLabel.setFont(new Font("Arial", Font.BOLD, 36));
-        valueLabel.setForeground(Color.WHITE);
-        valueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        card.add(titleLabel);
-        card.add(Box.createVerticalStrut(10));
-        card.add(valueLabel);
-
-        return card;
-    }
-
-    /**
-     * Creates the recent activity panel.
-     *
-     * @return JPanel containing recent activities
-     */
-    private JPanel createActivityPanel() {
-        JPanel activityPanel = new JPanel(new BorderLayout());
-        activityPanel.setOpaque(false);
-        activityPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-
-        JLabel activityTitle = new JLabel("Recent Activities");
-        activityTitle.setFont(new Font("Arial", Font.BOLD, 20));
-        activityTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
-
-        JPanel activityContent = new JPanel();
-        activityContent.setLayout(new BoxLayout(activityContent, BoxLayout.Y_AXIS));
-        activityContent.setBackground(Color.WHITE);
-        activityContent.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
-                BorderFactory.createEmptyBorder(15, 15, 15, 15)
-        ));
-
-        JLabel placeholderLabel = new JLabel("No recent activities");
-        placeholderLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-        placeholderLabel.setForeground(Color.GRAY);
-        activityContent.add(placeholderLabel);
-
+    private JPanel createActivityContainer() {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setOpaque(false);
-        wrapper.add(activityTitle, BorderLayout.NORTH);
-        wrapper.add(activityContent, BorderLayout.CENTER);
 
-        activityPanel.add(wrapper);
+        JLabel header = new JLabel("Recent Activity");
+        header.setFont(new Font("Arial", Font.BOLD, 18));
+        header.setForeground(TEXT_PRIMARY);
+        header.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
 
-        return activityPanel;
+        // Card Container
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(CARD_BG);
+        card.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1));
+
+        // The list panel that will hold rows
+        activityListPanel = new JPanel();
+        activityListPanel.setLayout(new BoxLayout(activityListPanel, BoxLayout.Y_AXIS));
+        activityListPanel.setBackground(Color.WHITE);
+
+        JScrollPane scrollPane = new JScrollPane(activityListPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setBackground(Color.WHITE);
+
+        // Fix height of activity section
+        scrollPane.setPreferredSize(new Dimension(800, 250));
+
+        card.add(scrollPane, BorderLayout.CENTER);
+        wrapper.add(header, BorderLayout.NORTH);
+        wrapper.add(card, BorderLayout.CENTER);
+
+        return wrapper;
     }
 
-    /**
-     * Gets the total count of invoices from the invoices directory.
-     *
-     * @return the total number of invoices
-     */
+    private JPanel createActivityRow(String text, String date, boolean isLast) {
+        JPanel row = new JPanel(new BorderLayout());
+        row.setBackground(Color.WHITE);
+        row.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+
+        JLabel textLbl = new JLabel(text);
+        textLbl.setFont(new Font("Arial", Font.PLAIN, 14));
+        textLbl.setForeground(TEXT_PRIMARY);
+
+        JLabel dateLbl = new JLabel(date);
+        dateLbl.setFont(new Font("Arial", Font.PLAIN, 12));
+        dateLbl.setForeground(TEXT_SECONDARY);
+
+        row.add(textLbl, BorderLayout.WEST);
+        row.add(dateLbl, BorderLayout.EAST);
+
+        // Add separator line unless it's the last item
+        if (!isLast) {
+            row.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(240, 240, 240)),
+                    BorderFactory.createEmptyBorder(15, 25, 15, 25)
+            ));
+        }
+
+        return row;
+    }
+
+    // ==========================================
+    //           FUNCTIONAL LOGIC
+    // ==========================================
+
+    private void startAutoRefresh() {
+        // Refresh every 5 seconds to avoid heavy IO
+        refreshTimer = new Timer(5000, e -> {
+            refreshDashboardStats();
+            refreshActivityList();
+        });
+        refreshTimer.start();
+    }
+
+    public void stopAutoRefresh() {
+        if (refreshTimer != null) refreshTimer.stop();
+    }
+
+    // --- Stats Logic ---
+    public void refreshDashboardStats() {
+        if (invoicesValueLabel != null && revenueValueLabel != null) {
+            invoicesValueLabel.setText(String.valueOf(getTotalInvoicesCount()));
+            revenueValueLabel.setText(String.format("PHP %,.2f", calculateTotalRevenue()));
+        }
+    }
+
     private int getTotalInvoicesCount() {
-        File invoicesDir = new File("invoices");
-        
-        if (!invoicesDir.exists()) {
-            invoicesDir = new File("src/main/invoices");
-        }
-        
-        if (!invoicesDir.exists() || !invoicesDir.isDirectory()) {
-            return 0;
-        }
-        
-        File[] invoiceFiles = invoicesDir.listFiles((dir, name) -> name.endsWith(".txt"));
-        return invoiceFiles != null ? invoiceFiles.length : 0;
+        File[] files = getInvoiceFiles();
+        return files != null ? files.length : 0;
     }
 
-    /**
-     * Calculates the total revenue from all invoices.
-     *
-     * @return the total revenue from all invoices
-     */
     private double calculateTotalRevenue() {
-        File invoicesDir = new File("invoices");
-        
-        if (!invoicesDir.exists()) {
-            invoicesDir = new File("src/main/invoices");
-        }
-        
-        if (!invoicesDir.exists() || !invoicesDir.isDirectory()) {
-            return 0.0;
-        }
-        
-        File[] invoiceFiles = invoicesDir.listFiles((dir, name) -> name.endsWith(".txt"));
-        if (invoiceFiles == null || invoiceFiles.length == 0) {
-            return 0.0;
-        }
-        
+        File[] files = getInvoiceFiles();
+        if (files == null) return 0.0;
+
         double totalRevenue = 0.0;
-        
-        for (File file : invoiceFiles) {
+        for (File file : files) {
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -279,17 +235,52 @@ public class AdminDashboardScreen extends JPanel {
                         amountStr = amountStr.replace("PHP", "").replace(",", "").trim();
                         try {
                             totalRevenue += Double.parseDouble(amountStr);
-                        } catch (NumberFormatException e) {
-                            // Skip invalid amounts
-                        }
-                        break; // Found the amount due, move to next file
+                        } catch (NumberFormatException e) { /* ignore */ }
+                        break;
                     }
                 }
-            } catch (IOException e) {
-                System.err.println("Error reading invoice: " + file.getName());
+            } catch (IOException e) { /* ignore */ }
+        }
+        return totalRevenue;
+    }
+
+    // --- Activity List Logic ---
+    public void refreshActivityList() {
+        if (activityListPanel == null) return;
+
+        activityListPanel.removeAll();
+        File[] files = getInvoiceFiles();
+
+        if (files == null || files.length == 0) {
+            JPanel emptyRow = createActivityRow("No recent activities logged.", "", true);
+            activityListPanel.add(emptyRow);
+        } else {
+            // Sort by Last Modified (Descending)
+            Arrays.sort(files, (f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
+
+            // Take top 5
+            int limit = Math.min(files.length, 5);
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, HH:mm");
+
+            for (int i = 0; i < limit; i++) {
+                File f = files[i];
+                String activityText = "New Invoice Generated: " + f.getName();
+                String dateText = sdf.format(new Date(f.lastModified()));
+
+                // Pass true if it's the last item to remove the border separator
+                activityListPanel.add(createActivityRow(activityText, dateText, i == limit - 1));
             }
         }
-        
-        return totalRevenue;
+
+        activityListPanel.revalidate();
+        activityListPanel.repaint();
+    }
+
+    private File[] getInvoiceFiles() {
+        File invoicesDir = new File("invoices");
+        if (!invoicesDir.exists()) invoicesDir = new File("src/main/invoices");
+        if (!invoicesDir.exists() || !invoicesDir.isDirectory()) return null;
+
+        return invoicesDir.listFiles((dir, name) -> name.endsWith(".txt"));
     }
 }

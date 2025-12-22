@@ -1,0 +1,31 @@
+================================================================================
+
+  INV20251223-011644
+
+  Due date                                    Subject
+  23 December 2025              Service for 23 December 2025
+
+  Billed to                                     Currency
+  123                           PHP - Philippine Pesos
+  123
+  123
+
+  ----------------------------------------------------------------------------
+
+  DESCRIPTION                              QTY        UNIT PRICE        AMOUNT
+
+  Premium Service Bundle                     3         750.000 PHP       2,250.000 PHP
+  Product A                                  2         150.000 PHP         300.000 PHP
+
+                                                       Subtotal           2,550.000 PHP
+                                                       Total              2,550.000 PHP
+                                                       Amount due       2,550.000 PHP
+
+  ----------------------------------------------------------------------------
+
+  Attachment
+
+  [📄] Product list.PDF
+       21.2kb
+
+================================================================================
