@@ -31,13 +31,13 @@ public class UserScreen extends JPanel {
     public UserScreen() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
-        
+
         itemValueMap = new HashMap<>();
         itemCategoryMap = new HashMap<>();
         selectedCategories = new HashSet<>();
-        
+
         loadInventoryData();
-        
+
         // Initialize with all categories selected
         selectedCategories.addAll(Arrays.asList("1", "2", "3"));
 
@@ -82,65 +82,232 @@ public class UserScreen extends JPanel {
 
     /**
      * Loads inventory data from inventory.json file.
+     * Tries multiple path locations to find the file.
      */
     private void loadInventoryData() {
         try {
-            // Path to inventory.json relative to screens folder
-            File file = new File("src/items/inventory.json");
-            
-            // If not found, try relative path from screens
-            if (!file.exists()) {
-                file = new File("../items/inventory.json");
+            File file = null;
+            String[] possiblePaths = {
+                    "src/items/inventory.json",
+                    "items/inventory.json",
+                    "../items/inventory.json",
+                    "./src/items/inventory.json"
+            };
+
+            // Try each possible path
+            for (String path : possiblePaths) {
+                File testFile = new File(path);
+                if (testFile.exists()) {
+                    file = testFile;
+                    System.out.println("Found inventory.json at: " + path);
+                    break;
+                }
             }
-            
-            if (!file.exists()) {
-                System.err.println("Could not find inventory.json. Tried: src/items/inventory.json and ../items/inventory.json");
+
+            if (file == null || !file.exists()) {
+                System.err.println("Could not find inventory.json. Tried paths:");
+                for (String path : possiblePaths) {
+                    System.err.println("  - " + path);
+                }
+                // Load sample data for testing
+                loadSampleData();
                 return;
             }
-            
+
             try (Scanner scanner = new Scanner(file)) {
                 StringBuilder content = new StringBuilder();
                 while (scanner.hasNextLine()) {
                     content.append(scanner.nextLine());
                 }
                 parseInventoryJson(content.toString());
+                System.out.println("Successfully loaded " + itemValueMap.size() + " items from inventory.json");
+
+                // Debug: Print all loaded items
+                System.out.println("Items by category:");
+                for (String cat : Arrays.asList("1", "2", "3")) {
+                    System.out.println("  Category " + cat + ":");
+                    for (String item : itemValueMap.keySet()) {
+                        if (cat.equals(itemCategoryMap.get(item))) {
+                            System.out.println("    - " + item + ": $" + itemValueMap.get(item));
+                        }
+                    }
+                }
             }
         } catch (Exception e) {
             System.err.println("Error loading inventory data: " + e.getMessage());
+            e.printStackTrace();
+            // Load sample data as fallback
+            loadSampleData();
         }
     }
 
-    private void parseInventoryJson(String jsonContent) {
-        // Parse JSON manually
-        String jsonStr = jsonContent;
-        jsonStr = jsonStr.substring(jsonStr.indexOf('[') + 1, jsonStr.lastIndexOf(']'));
-        
-        // Split by objects
-        String[] items = jsonStr.split("\\{");
-        for (String item : items) {
-            if (item.trim().isEmpty()) continue;
-            
-            // Extract itemName
-            int nameStart = item.indexOf("\"itemName\"") + 12;
-            int nameEnd = item.indexOf("\"", nameStart + 1);
-            String itemName = item.substring(nameStart, nameEnd);
-            
-            // Extract value
-            int valueStart = item.indexOf("\"value\"") + 9;
-            int valueEnd = item.indexOf(",", valueStart);
-            if (valueEnd == -1) {
-                valueEnd = item.indexOf("}", valueStart);
+    /**
+     * Loads sample inventory data if the JSON file cannot be found.
+     * This is useful for testing and development.
+     */
+    private void loadSampleData() {
+        System.out.println("Loading sample inventory data...");
+
+        // Add sample data matching your JSON structure
+        itemValueMap.put("Product A", 150.00);
+        itemCategoryMap.put("Product A", "1");
+
+        itemValueMap.put("Product B", 75.50);
+        itemCategoryMap.put("Product B", "1");
+
+        itemValueMap.put("Service X", 250.00);
+        itemCategoryMap.put("Service X", "2");
+
+        itemValueMap.put("Product C", 45.99);
+        itemCategoryMap.put("Product C", "2");
+
+        itemValueMap.put("Service Y", 500.00);
+        itemCategoryMap.put("Service Y", "3");
+
+        itemValueMap.put("Product D", 199.99);
+        itemCategoryMap.put("Product D", "3");
+
+        itemValueMap.put("Product E", 29.50);
+        itemCategoryMap.put("Product E", "1");
+
+        System.out.println("Loaded " + itemValueMap.size() + " sample items");
+
+        // Debug: Print all loaded items
+        System.out.println("Items by category:");
+        for (String cat : Arrays.asList("1", "2", "3")) {
+            System.out.println("  Category " + cat + ":");
+            for (String item : itemValueMap.keySet()) {
+                if (cat.equals(itemCategoryMap.get(item))) {
+                    System.out.println("    - " + item + ": $" + itemValueMap.get(item));
+                }
             }
-            String valueStr = item.substring(valueStart, valueEnd).trim();
-            double value = Double.parseDouble(valueStr);
-            
-            // Extract category
-            int catStart = item.indexOf("\"category\"") + 12;
-            int catEnd = item.indexOf("\"", catStart + 1);
-            String category = item.substring(catStart, catEnd);
-            
-            itemValueMap.put(itemName, value);
-            itemCategoryMap.put(itemName, category);
+        }
+    }
+
+
+    /**
+     * Parses the JSON content from inventory.json file.
+     * Extracts itemName, value, and category for each item.
+     *
+     * @param jsonContent the JSON string to parse
+     */
+    private void parseInventoryJson(String jsonContent) {
+        try {
+            // Remove whitespace and newlines
+            String jsonStr = jsonContent.replaceAll("\\s+", " ");
+
+            // Extract the array content
+            int arrayStart = jsonStr.indexOf('[');
+            int arrayEnd = jsonStr.lastIndexOf(']');
+            if (arrayStart == -1 || arrayEnd == -1) {
+                System.err.println("Invalid JSON format: no array found");
+                return;
+            }
+
+            jsonStr = jsonStr.substring(arrayStart + 1, arrayEnd);
+
+            // Split by object boundaries - look for "},{"
+            String[] items = jsonStr.split("\\},\\s*\\{");
+
+            for (String item : items) {
+                // Clean up the item string
+                item = item.trim();
+                if (item.startsWith("{")) {
+                    item = item.substring(1);
+                }
+                if (item.endsWith("}")) {
+                    item = item.substring(0, item.length() - 1);
+                }
+
+                if (item.isEmpty()) continue;
+
+                try {
+                    // Extract itemName
+                    String itemName = extractJsonValue(item, "itemName");
+                    if (itemName == null) continue;
+
+                    // Extract value
+                    String valueStr = extractJsonValue(item, "value");
+                    if (valueStr == null) continue;
+                    // Remove any comma at the end
+                    valueStr = valueStr.replaceAll(",.*", "").trim();
+                    double value = Double.parseDouble(valueStr);
+
+                    // Extract category
+                    String category = extractJsonValue(item, "category");
+                    if (category == null) continue;
+
+                    // Store in maps
+                    itemValueMap.put(itemName, value);
+                    itemCategoryMap.put(itemName, category);
+
+                    System.out.println("Parsed item: " + itemName + " = $" + value + " (Category " + category + ")");
+
+                } catch (Exception e) {
+                    System.err.println("Error parsing item: " + item);
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error in parseInventoryJson: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Extracts a value from a JSON string for a given key.
+     * Handles both string and numeric values.
+     *
+     * @param jsonStr the JSON object string
+     * @param key the key to extract
+     * @return the value as a string, or null if not found
+     */
+    private String extractJsonValue(String jsonStr, String key) {
+        try {
+            // Find the key
+            String searchStr = "\"" + key + "\"";
+            int keyIndex = jsonStr.indexOf(searchStr);
+            if (keyIndex == -1) {
+                return null;
+            }
+
+            // Find the colon after the key
+            int colonIndex = jsonStr.indexOf(":", keyIndex);
+            if (colonIndex == -1) {
+                return null;
+            }
+
+            // Skip whitespace after colon
+            int valueStart = colonIndex + 1;
+            while (valueStart < jsonStr.length() && Character.isWhitespace(jsonStr.charAt(valueStart))) {
+                valueStart++;
+            }
+
+            if (valueStart >= jsonStr.length()) {
+                return null;
+            }
+
+            // Check if value is a string (starts with quote)
+            if (jsonStr.charAt(valueStart) == '"') {
+                // String value
+                int valueEnd = jsonStr.indexOf('"', valueStart + 1);
+                if (valueEnd == -1) {
+                    return null;
+                }
+                return jsonStr.substring(valueStart + 1, valueEnd);
+            } else {
+                // Numeric or other value
+                int valueEnd = valueStart;
+                while (valueEnd < jsonStr.length() &&
+                        jsonStr.charAt(valueEnd) != ',' &&
+                        jsonStr.charAt(valueEnd) != '}') {
+                    valueEnd++;
+                }
+                return jsonStr.substring(valueStart, valueEnd).trim();
+            }
+        } catch (Exception e) {
+            System.err.println("Error extracting key '" + key + "': " + e.getMessage());
+            return null;
         }
     }
 
@@ -188,7 +355,8 @@ public class UserScreen extends JPanel {
     /**
      * Creates and returns the invoice items table panel.
      * Contains a table with columns: Item Name, Qty, Value, and Total.
-     * Includes category toggle buttons and 7 pre-populated rows.
+     * Includes category toggle buttons and dynamically generates rows based on available items.
+     * The table is scrollable when there are many items.
      *
      * @return JPanel containing the invoice items table
      */
@@ -199,7 +367,7 @@ public class UserScreen extends JPanel {
 
         // Category toggle panel
         JPanel categoryPanel = createCategoryTogglePanel();
-        
+
         // Header panel
         JPanel headerPanel = new JPanel(new GridLayout(1, 4, 5, 0));
         headerPanel.setBackground(new Color(200, 200, 200));
@@ -212,12 +380,15 @@ public class UserScreen extends JPanel {
             headerPanel.add(headerLabel);
         }
 
-        // Items panel with rows
+        // Items panel with rows - dynamically created based on filtered items
         itemsPanel = new JPanel();
         itemsPanel.setLayout(new BoxLayout(itemsPanel, BoxLayout.Y_AXIS));
         itemsPanel.setOpaque(false);
 
-        for (int i = 1; i <= 7; i++) {
+        // Count items in selected categories to determine number of rows
+        int itemCount = getFilteredItemCount();
+
+        for (int i = 1; i <= itemCount; i++) {
             itemsPanel.add(createItemRow(i));
         }
 
@@ -229,6 +400,11 @@ public class UserScreen extends JPanel {
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        // Set preferred height to show approximately 7 rows, then scroll
+        scrollPane.setPreferredSize(new Dimension(scrollPane.getPreferredSize().width, 350));
 
         // Combine header and scroll pane
         JPanel tableContentPanel = new JPanel(new BorderLayout());
@@ -240,6 +416,22 @@ public class UserScreen extends JPanel {
         tablePanel.add(tableContentPanel, BorderLayout.CENTER);
 
         return tablePanel;
+    }
+
+    /**
+     * Counts the number of items in the currently selected categories.
+     *
+     * @return the count of filtered items
+     */
+    private int getFilteredItemCount() {
+        int count = 0;
+        for (String itemName : itemValueMap.keySet()) {
+            String category = itemCategoryMap.get(itemName);
+            if (selectedCategories.contains(category)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /**
@@ -264,7 +456,7 @@ public class UserScreen extends JPanel {
             categoryBtn.setBackground(new Color(130, 170, 255));
             categoryBtn.setForeground(Color.WHITE);
             categoryBtn.setFocusPainted(false);
-            
+
             String catId = category;
             categoryBtn.addActionListener(e -> {
                 if (categoryBtn.isSelected()) {
@@ -287,95 +479,99 @@ public class UserScreen extends JPanel {
 
     /**
      * Refreshes the table rows to show only items from selected categories.
+     * Dynamically creates rows based on the number of items in selected categories.
      */
     private void refreshTableRows() {
         itemsPanel.removeAll();
-        for (int i = 1; i <= 7; i++) {
+
+        // Count items in selected categories
+        int itemCount = getFilteredItemCount();
+
+        // Create rows for each item
+        for (int i = 1; i <= itemCount; i++) {
             itemsPanel.add(createItemRow(i));
         }
+
         itemsPanel.revalidate();
         itemsPanel.repaint();
     }
 
     /**
      * Creates and returns a single invoice item row.
-     * Each row contains item name dropdown, quantity spinner,
-     * value field (from inventory), and auto-calculated total field.
+     * Each row displays an item name label, quantity spinner,
+     * value label (non-editable), and auto-calculated total label (non-editable).
+     * Items are automatically assigned based on selected categories.
      *
+     * @param rowIndex the row number (1-based)
      * @return JPanel representing a single item row
      */
-    private JPanel createItemRow(int itemNumber) {
+    private JPanel createItemRow(int rowIndex) {
         JPanel rowPanel = new JPanel(new GridLayout(1, 4, 5, 0));
         rowPanel.setOpaque(false);
         rowPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-        // Item name dropdown
-        DefaultComboBoxModel<String> itemModel = new DefaultComboBoxModel<>();
+        // Get sorted items from selected categories
+        java.util.List<String> sortedItems = new java.util.ArrayList<>();
         for (String itemName : itemValueMap.keySet()) {
             String category = itemCategoryMap.get(itemName);
             if (selectedCategories.contains(category)) {
-                itemModel.addElement(itemName);
+                sortedItems.add(itemName);
             }
         }
-        JComboBox<String> itemNameCombo = new JComboBox<>(itemModel);
-        itemNameCombo.setFont(new Font("Arial", Font.PLAIN, 13));
-        itemNameCombo.setBackground(Color.WHITE);
+        Collections.sort(sortedItems);
+
+        // Determine which item to display in this row
+        String itemName = "";
+        double itemValue = 0.0;
+
+        if (rowIndex <= sortedItems.size()) {
+            itemName = sortedItems.get(rowIndex - 1);
+            itemValue = itemValueMap.get(itemName);
+        }
+
+        // Item name label (NON-EDITABLE)
+        JLabel itemNameLabel = getStyledLabel(itemName);
+        itemNameLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        itemNameLabel.setFont(new Font("Arial", Font.PLAIN, 13));
 
         // Qty spinner
         JSpinner qtySpinner = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
         qtySpinner.setFont(new Font("Arial", Font.PLAIN, 13));
 
-        // Value label (constant from inventory) with border
-        JLabel valueLabel = new JLabel("");
-        valueLabel.setFont(new Font("Arial", Font.PLAIN, 13));
-        valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        valueLabel.setOpaque(true);
-        valueLabel.setBackground(Color.WHITE);
-        valueLabel.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedBorder(12, new Color(180, 180, 180)),
-                BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
+        // Value label (NON-EDITABLE) - Styled to look like a field
+        JLabel valueLabel = getStyledLabel(String.format("%.2f", itemValue));
 
-        // Total field (read-only, calculated)
-        JTextField totalField = getTableInputField("");
-        totalField.setEditable(false);
+        // Total label (NON-EDITABLE) - Styled to look like a field
+        JLabel totalLabel = getStyledLabel("0.00");
 
-        // Add listeners to update value and total
-        itemNameCombo.addActionListener(e -> {
-            String selectedItem = (String) itemNameCombo.getSelectedItem();
-            if (selectedItem != null && itemValueMap.containsKey(selectedItem)) {
-                double value = itemValueMap.get(selectedItem);
-                valueLabel.setText(String.format("%.2f", value));
-                updateTotal(qtySpinner, value, totalField);
-            }
-        });
-
+        // Add listener to quantity spinner to update total
         qtySpinner.addChangeListener(e -> {
-            if (itemNameCombo.getSelectedItem() != null && itemValueMap.containsKey((String) itemNameCombo.getSelectedItem())) {
-                double value = itemValueMap.get((String) itemNameCombo.getSelectedItem());
-                updateTotal(qtySpinner, value, totalField);
-            }
+            updateTotalFromLabel(qtySpinner, valueLabel, totalLabel);
         });
 
-        rowPanel.add(itemNameCombo);
+        rowPanel.add(itemNameLabel);
         rowPanel.add(qtySpinner);
         rowPanel.add(valueLabel);
-        rowPanel.add(totalField);
+        rowPanel.add(totalLabel);
 
         return rowPanel;
     }
 
     /**
-     * Updates the total field based on qty and value.
+     * Updates the total label based on qty and value from label.
      * Total = Qty * Value
      */
-    private void updateTotal(JSpinner qtySpinner, double value, JTextField totalField) {
+    private void updateTotalFromLabel(JSpinner qtySpinner, JLabel valueLabel, JLabel totalLabel) {
         try {
             int qty = (Integer) qtySpinner.getValue();
+            String valueText = valueLabel.getText().trim();
+
+            double value = Double.parseDouble(valueText);
             double total = qty * value;
-            totalField.setText(String.format("%.2f", total));
+
+            totalLabel.setText(String.format("%.2f", total));
         } catch (NumberFormatException e) {
-            // Handle invalid number format
+            totalLabel.setText("0.00");
         }
     }
 
@@ -499,30 +695,28 @@ public class UserScreen extends JPanel {
     }
 
     /**
-     * Creates and returns a styled input field for table cells.
+     * Creates and returns a styled label that looks like an input field.
+     * This is used for non-editable value and total columns.
      *
-     * @param placeholder the placeholder text for the field
-     * @return JTextField styled table input field
+     * @param text the initial text for the label
+     * @return JLabel styled to look like an input field
      */
-    private static JTextField getTableInputField(String placeholder) {
-        JTextField inputField = new JTextField(placeholder, 10);
-        inputField.setFont(new Font("Arial", Font.PLAIN, 13));
-        inputField.setForeground(Color.GRAY);
-        inputField.setBackground(Color.WHITE);
-        inputField.setBorder(BorderFactory.createCompoundBorder(
+    private static JLabel getStyledLabel(String text) {
+        JLabel label = new JLabel(text, SwingConstants.CENTER);
+        label.setFont(new Font("Arial", Font.PLAIN, 13));
+        label.setForeground(Color.BLACK);
+        label.setBackground(new Color(245, 245, 245)); // Light gray background
+        label.setOpaque(true);
+        label.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedBorder(12, new Color(180, 180, 180)),
                 BorderFactory.createEmptyBorder(5, 8, 5, 8)
         ));
+        // Ensure the label can be resized properly
+        label.setMinimumSize(new Dimension(50, 30));
+        label.setPreferredSize(new Dimension(100, 30));
 
-        return inputField;
+        return label;
     }
-
-    /**
-     * Creates a JTextField with placeholder text that disappears when focused.
-     *
-     * @param placeholder the placeholder text to display
-     * @return JTextField with placeholder behavior
-     */
 
     /**
      * Custom border class for creating rounded borders on text fields.
