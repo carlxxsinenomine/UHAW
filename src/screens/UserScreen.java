@@ -1,30 +1,35 @@
 package screens;
 
-import components.NavBarPanel; // Using the external component
+import components.NavBarPanel;
 import java.awt.*;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import main.MainActivity;
 
 /**
  * UserScreen class represents the main invoice generation interface.
- * Uses the shared NavBarPanel for consistent navigation.
+ * Implements Quantity Tracking: Decrements inventory on checkout and shows Out of Stock.
  *
  * @author Your Name
- * @version 2.2
+ * @version 2.3
  */
 public class UserScreen extends JPanel {
 
     private Map<String, Double> itemValueMap;
     private Map<String, String> itemCategoryMap;
+    // New Map to track available quantities
+    private Map<String, Integer> itemQuantityMap;
     private Set<String> selectedCategories;
     private JPanel itemsPanel;
     private JLabel overallTotalLabel;
     private JLabel totalItemsLabel;
     private java.util.List<JSpinner> quantitySpinners;
+    // Map to link spinners back to item names for checkout logic
+    private Map<JSpinner, String> spinnerToItemMap;
+
     private JTextField nameInput;
     private JTextField contactInput;
     private JTextField addressInput;
@@ -36,8 +41,10 @@ public class UserScreen extends JPanel {
         // 1. Initialize Data Structures
         itemValueMap = new HashMap<>();
         itemCategoryMap = new HashMap<>();
+        itemQuantityMap = new HashMap<>();
         selectedCategories = new HashSet<>();
         quantitySpinners = new java.util.ArrayList<>();
+        spinnerToItemMap = new HashMap<>();
 
         // 2. Load Data
         loadInventoryData();
@@ -100,16 +107,16 @@ public class UserScreen extends JPanel {
                     break;
                 }
             }
-            if (file == null || !file.exists()) {
-                loadSampleData();
-                return;
-            }
-            try (Scanner scanner = new Scanner(file)) {
-                StringBuilder content = new StringBuilder();
-                while (scanner.hasNextLine()) {
-                    content.append(scanner.nextLine());
+            if (file != null && file.exists()) {
+                try (Scanner scanner = new Scanner(file)) {
+                    StringBuilder content = new StringBuilder();
+                    while (scanner.hasNextLine()) {
+                        content.append(scanner.nextLine());
+                    }
+                    parseInventoryJson(content.toString());
                 }
-                parseInventoryJson(content.toString());
+            } else {
+                loadSampleData();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -118,13 +125,9 @@ public class UserScreen extends JPanel {
     }
 
     private void loadSampleData() {
-        itemValueMap.put("Product A", 150.00); itemCategoryMap.put("Product A", "1");
-        itemValueMap.put("Product B", 75.50); itemCategoryMap.put("Product B", "1");
-        itemValueMap.put("Service X", 250.00); itemCategoryMap.put("Service X", "2");
-        itemValueMap.put("Product C", 45.99); itemCategoryMap.put("Product C", "2");
-        itemValueMap.put("Service Y", 500.00); itemCategoryMap.put("Service Y", "3");
-        itemValueMap.put("Product D", 199.99); itemCategoryMap.put("Product D", "3");
-        itemValueMap.put("Product E", 29.50); itemCategoryMap.put("Product E", "1");
+        itemValueMap.put("Product A", 150.00); itemCategoryMap.put("Product A", "1"); itemQuantityMap.put("Product A", 10);
+        itemValueMap.put("Product B", 75.50); itemCategoryMap.put("Product B", "1"); itemQuantityMap.put("Product B", 5);
+        // ... add other sample data ...
     }
 
     private void parseInventoryJson(String jsonContent) {
@@ -140,11 +143,17 @@ public class UserScreen extends JPanel {
                     String itemName = extractJsonValue(item, "itemName");
                     String valueStr = extractJsonValue(item, "value");
                     String category = extractJsonValue(item, "category");
+                    String qtyStr = extractJsonValue(item, "quantity"); // Parse Quantity
+
                     if (itemName != null && valueStr != null && category != null) {
                         try {
                             double value = Double.parseDouble(valueStr.replaceAll(",.*", "").trim());
                             itemValueMap.put(itemName, value);
                             itemCategoryMap.put(itemName, category);
+
+                            // Parse Quantity (default to 0 if missing)
+                            int qty = (qtyStr != null) ? Integer.parseInt(qtyStr.trim()) : 0;
+                            itemQuantityMap.put(itemName, qty);
                         } catch (Exception e) {}
                     }
                 }
@@ -226,8 +235,6 @@ public class UserScreen extends JPanel {
         itemsPanel.setLayout(new BoxLayout(itemsPanel, BoxLayout.Y_AXIS));
         itemsPanel.setOpaque(false);
 
-        // This calculates rows. Note: updateOverallTotals is called here,
-        // but overallTotalLabel might be null if called before getBottomPanel.
         refreshTableRows();
 
         JPanel scrollableContent = new JPanel(new BorderLayout());
@@ -294,47 +301,64 @@ public class UserScreen extends JPanel {
     private void refreshTableRows() {
         itemsPanel.removeAll();
         quantitySpinners.clear();
-        int itemCount = getFilteredItemCount();
-        for (int i = 1; i <= itemCount; i++) {
-            itemsPanel.add(createItemRow(i));
+        spinnerToItemMap.clear();
+
+        // Sort items for consistent display
+        java.util.List<String> sortedItems = new java.util.ArrayList<>(itemValueMap.keySet());
+        Collections.sort(sortedItems);
+
+        for (String itemName : sortedItems) {
+            if (selectedCategories.contains(itemCategoryMap.get(itemName))) {
+                itemsPanel.add(createItemRow(itemName));
+            }
         }
         itemsPanel.revalidate();
         itemsPanel.repaint();
         updateOverallTotals();
     }
 
-    private JPanel createItemRow(int rowIndex) {
+    private JPanel createItemRow(String itemName) {
         JPanel rowPanel = new JPanel(new GridLayout(1, 4, 5, 0));
         rowPanel.setOpaque(false);
         rowPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        java.util.List<String> sortedItems = new java.util.ArrayList<>();
-        for (String itemName : itemValueMap.keySet()) {
-            if (selectedCategories.contains(itemCategoryMap.get(itemName))) sortedItems.add(itemName);
-        }
-        Collections.sort(sortedItems);
-        String itemName = "";
-        double itemValue = 0.0;
-        if (rowIndex <= sortedItems.size()) {
-            itemName = sortedItems.get(rowIndex - 1);
-            itemValue = itemValueMap.get(itemName);
-        }
+
+        double itemValue = itemValueMap.get(itemName);
+        // Get Quantity from map, default to 0
+        int availableQty = itemQuantityMap.getOrDefault(itemName, 0);
+
         JLabel itemNameLabel = getStyledLabel(itemName);
         itemNameLabel.setHorizontalAlignment(SwingConstants.LEFT);
 
-        JSpinner qtySpinner = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
-        qtySpinner.setFont(new Font("Arial", Font.PLAIN, 13));
-        quantitySpinners.add(qtySpinner);
-
-        JLabel valueLabel = getStyledLabel(String.format("%.2f", itemValue));
+        // --- QUANTITY LOGIC START ---
+        JComponent qtyComponent;
         JLabel totalLabel = getStyledLabel("0.00");
+        JLabel valueLabel = getStyledLabel(String.format("%.2f", itemValue));
 
-        qtySpinner.addChangeListener(e -> {
-            updateTotalFromLabel(qtySpinner, valueLabel, totalLabel);
-            updateOverallTotals();
-        });
+        if (availableQty > 0) {
+            // If stock available, show spinner with max value = availableQty
+            JSpinner qtySpinner = new JSpinner(new SpinnerNumberModel(0, 0, availableQty, 1));
+            qtySpinner.setFont(new Font("Arial", Font.PLAIN, 13));
+            quantitySpinners.add(qtySpinner);
+            spinnerToItemMap.put(qtySpinner, itemName);
+
+            qtySpinner.addChangeListener(e -> {
+                updateTotalFromLabel(qtySpinner, valueLabel, totalLabel);
+                updateOverallTotals();
+            });
+            qtyComponent = qtySpinner;
+        } else {
+            // If 0 stock, show "Out of Stock" label in red
+            JLabel outOfStockLbl = new JLabel("Out of Stock");
+            outOfStockLbl.setForeground(Color.RED);
+            outOfStockLbl.setFont(new Font("Arial", Font.BOLD, 12));
+            outOfStockLbl.setHorizontalAlignment(SwingConstants.CENTER);
+            qtyComponent = outOfStockLbl;
+            totalLabel.setText("-");
+        }
+        // --- QUANTITY LOGIC END ---
 
         rowPanel.add(itemNameLabel);
-        rowPanel.add(qtySpinner);
+        rowPanel.add(qtyComponent);
         rowPanel.add(valueLabel);
         rowPanel.add(totalLabel);
         return rowPanel;
@@ -394,26 +418,24 @@ public class UserScreen extends JPanel {
     }
 
     private void updateOverallTotals() {
-        // SAFETY CHECK: Labels might be null during initialization phase
-        if (overallTotalLabel == null || totalItemsLabel == null) {
-            return;
-        }
+        if (overallTotalLabel == null || totalItemsLabel == null) return;
 
         double overallTotal = 0.0;
         int totalItems = 0;
-        Component[] components = itemsPanel.getComponents();
-        for (Component comp : components) {
-            if (comp instanceof JPanel) {
-                Component[] rowComponents = ((JPanel) comp).getComponents();
-                if (rowComponents.length >= 4 && rowComponents[1] instanceof JSpinner && rowComponents[3] instanceof JLabel) {
-                    try {
-                        int qty = (Integer) ((JSpinner) rowComponents[1]).getValue();
-                        overallTotal += Double.parseDouble(((JLabel) rowComponents[3]).getText().trim());
-                        if (qty > 0) totalItems += qty;
-                    } catch (Exception e) {}
+
+        for (JSpinner spinner : quantitySpinners) {
+            try {
+                int qty = (Integer) spinner.getValue();
+                if (qty > 0) {
+                    String itemName = spinnerToItemMap.get(spinner);
+                    if (itemName != null && itemValueMap.containsKey(itemName)) {
+                        overallTotal += qty * itemValueMap.get(itemName);
+                        totalItems += qty;
+                    }
                 }
-            }
+            } catch (Exception e) {}
         }
+
         overallTotalLabel.setText(String.format("%.2f", overallTotal));
         totalItemsLabel.setText(String.valueOf(totalItems));
     }
@@ -464,65 +486,125 @@ public class UserScreen extends JPanel {
         return label;
     }
 
+    /**
+     * Logic to generate invoice and decrement inventory.
+     */
     private void generateInvoice() {
-        try {
-            String customerName = nameInput.getText().trim();
-            String contactNo = contactInput.getText().trim();
-            String address = addressInput.getText().trim();
-            
-            if (customerName.isEmpty() || contactNo.isEmpty() || address.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please fill in all customer information.", "Missing Information", JOptionPane.WARNING_MESSAGE);
-                return;
+        String customerName = nameInput.getText().trim();
+        String contactNo = contactInput.getText().trim();
+        String address = addressInput.getText().trim();
+
+        if (customerName.isEmpty() || contactNo.isEmpty() || address.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill in all customer information.", "Missing Information", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 1. Calculate Items to Buy & Decrements
+        java.util.List<InvoiceItem> itemsToBuy = new ArrayList<>();
+        Map<String, Integer> decrements = new HashMap<>();
+        double subtotal = 0.0;
+        int totalQty = 0;
+
+        for (JSpinner spinner : quantitySpinners) {
+            int qty = (Integer) spinner.getValue();
+            if (qty > 0) {
+                String itemName = spinnerToItemMap.get(spinner);
+                double unitPrice = itemValueMap.get(itemName);
+                double amount = qty * unitPrice;
+
+                itemsToBuy.add(new InvoiceItem(itemName, qty, unitPrice, amount));
+                decrements.put(itemName, qty);
+                subtotal += amount;
+                totalQty += qty;
             }
-            
+        }
+
+        if (itemsToBuy.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please add at least one item.", "No Items", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 2. Decrement Inventory in JSON
+        if (updateInventoryFile(decrements)) {
+            // 3. Generate Invoice File
+            writeInvoiceToFile(customerName, contactNo, address, itemsToBuy, subtotal);
+
+            // 4. Success & Refresh
+            JOptionPane.showMessageDialog(this, "Invoice generated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+            nameInput.setText("");
+            contactInput.setText("");
+            addressInput.setText("");
+
+            // Reload to reflect new quantities (Out of Stock items will now show label)
+            loadInventoryData();
+            refreshTableRows();
+
+        } else {
+            JOptionPane.showMessageDialog(this, "Error updating inventory.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Updates inventory.json by subtracting purchased quantities.
+     */
+    private boolean updateInventoryFile(Map<String, Integer> decrements) {
+        try {
+            File file = new File("src/items/inventory.json");
+            if (!file.exists()) file = new File("items/inventory.json");
+            if (!file.exists()) return false;
+
+            java.util.List<String> lines = new ArrayList<>();
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) lines.add(line);
+            }
+
+            for (Map.Entry<String, Integer> entry : decrements.entrySet()) {
+                String targetItem = entry.getKey();
+                int reduceBy = entry.getValue();
+
+                for (int i = 0; i < lines.size(); i++) {
+                    if (lines.get(i).contains("\"itemName\": \"" + targetItem + "\"")) {
+                        for (int j = i; j < lines.size(); j++) {
+                            if (lines.get(j).contains("\"quantity\":")) {
+                                String qLine = lines.get(j);
+                                String[] parts = qLine.split(":");
+                                int currentQty = Integer.parseInt(parts[1].trim().replace(",", ""));
+                                int newQty = Math.max(0, currentQty - reduceBy);
+
+                                String comma = qLine.trim().endsWith(",") ? "," : "";
+                                lines.set(j, "    \"quantity\": " + newQty + comma);
+                                break;
+                            }
+                            if (lines.get(j).trim().startsWith("}")) break;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
+                for (String line : lines) pw.println(line);
+            }
+            return true;
+        } catch (Exception e) { e.printStackTrace(); return false; }
+    }
+
+    private void writeInvoiceToFile(String name, String contact, String addr, java.util.List<InvoiceItem> items, double total) {
+        try {
             SimpleDateFormat invoiceNumFormat = new SimpleDateFormat("yyyyMMdd-HHmmss");
             String invoiceNumber = "INV" + invoiceNumFormat.format(new Date());
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMMM yyyy");
             String dueDate = dateFormat.format(new Date());
             String subject = "Service for " + dateFormat.format(new Date());
-            
-            java.util.List<InvoiceItem> items = new java.util.ArrayList<>();
-            double subtotal = 0.0;
-            int totalQty = 0;
-            
-            Component[] components = itemsPanel.getComponents();
-            for (Component comp : components) {
-                if (comp instanceof JPanel) {
-                    Component[] rowComponents = ((JPanel) comp).getComponents();
-                    if (rowComponents.length >= 4 && rowComponents[0] instanceof JLabel && rowComponents[1] instanceof JSpinner) {
-                        JLabel itemNameLabel = (JLabel) rowComponents[0];
-                        JSpinner spinner = (JSpinner) rowComponents[1];
-                        JLabel valueLabel = (JLabel) rowComponents[2];
-                        
-                        String itemName = itemNameLabel.getText().trim();
-                        int qty = (Integer) spinner.getValue();
-                        
-                        if (qty > 0 && itemName != null && !itemName.isEmpty() && !valueLabel.getText().isEmpty()) {
-                            double unitPrice = Double.parseDouble(valueLabel.getText().trim());
-                            double amount = qty * unitPrice;
-                            items.add(new InvoiceItem(itemName, qty, unitPrice, amount));
-                            subtotal += amount;
-                            totalQty += qty;
-                        }
-                    }
-                }
-            }
-            
-            if (items.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please add at least one item to the invoice.", "No Items", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            
-            double total = subtotal;
-            
+
             File invoicesDir = new File("invoices");
-            if (!invoicesDir.exists()) {
-                invoicesDir.mkdirs();
-            }
-            
+            if (!invoicesDir.exists()) invoicesDir.mkdirs();
+
             File invoiceFile = new File(invoicesDir, invoiceNumber + ".txt");
             PrintWriter writer = new PrintWriter(new FileWriter(invoiceFile));
-            
+
             writer.println("=".repeat(80));
             writer.println();
             writer.println("  " + invoiceNumber);
@@ -531,15 +613,15 @@ public class UserScreen extends JPanel {
             writer.println("  " + dueDate + " ".repeat(30 - dueDate.length()) + subject);
             writer.println();
             writer.println("  Billed to" + " ".repeat(37) + "Currency");
-            writer.println("  " + customerName + " ".repeat(Math.max(1, 30 - customerName.length())) + "PHP - Philippine Pesos");
-            writer.println("  " + contactNo);
-            writer.println("  " + address);
+            writer.println("  " + name + " ".repeat(Math.max(1, 30 - name.length())) + "PHP - Philippine Pesos");
+            writer.println("  " + contact);
+            writer.println("  " + addr);
             writer.println();
             writer.println("  " + "-".repeat(76));
             writer.println();
             writer.println("  DESCRIPTION" + " ".repeat(30) + "QTY" + " ".repeat(8) + "UNIT PRICE" + " ".repeat(8) + "AMOUNT");
             writer.println();
-            
+
             for (InvoiceItem item : items) {
                 String desc = item.description;
                 if (desc.length() > 35) {
@@ -547,57 +629,24 @@ public class UserScreen extends JPanel {
                 }
                 writer.printf("  %-40s %3d %,15.3f PHP %,15.3f PHP%n", desc, item.qty, item.unitPrice, item.amount);
             }
-            
+
             writer.println();
-            writer.println(" ".repeat(55) + "Subtotal" + String.format("%,20.3f PHP", subtotal));
+            writer.println(" ".repeat(55) + "Subtotal" + String.format("%,20.3f PHP", total));
             writer.println(" ".repeat(55) + "Total" + String.format("%,23.3f PHP", total));
             writer.println(" ".repeat(55) + "Amount due" + String.format("%,16.3f PHP", total));
             writer.println();
             writer.println("  " + "-".repeat(76));
-            writer.println();
-            writer.println("  Attachment");
-            writer.println();
-            writer.println("  [📄] Product list.PDF");
-            writer.println("       21.2kb");
-            writer.println();
             writer.println("=".repeat(80));
-            
             writer.close();
-            
-            JOptionPane.showMessageDialog(this, 
-                "Invoice generated successfully!\n\nInvoice: " + invoiceNumber + ".txt\nTotal: PHP " + String.format("%,.2f", total),
-                "Invoice Created", 
-                JOptionPane.INFORMATION_MESSAGE);
-            
-            nameInput.setText("");
-            contactInput.setText("");
-            addressInput.setText("");
-            for (JSpinner spinner : quantitySpinners) {
-                spinner.setValue(0);
-            }
-            updateOverallTotals();
-                
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, 
-                "Error generating invoice: " + ex.getMessage(), 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
-    
+
     private static class InvoiceItem {
         String description;
         int qty;
         double unitPrice;
         double amount;
-        
-        InvoiceItem(String description, int qty, double unitPrice, double amount) {
-            this.description = description;
-            this.qty = qty;
-            this.unitPrice = unitPrice;
-            this.amount = amount;
-        }
+        InvoiceItem(String d, int q, double p, double a) { description = d; qty = q; unitPrice = p; amount = a; }
     }
 
     static class RoundedBorder extends javax.swing.border.AbstractBorder {
