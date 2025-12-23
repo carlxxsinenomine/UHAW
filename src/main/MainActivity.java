@@ -56,7 +56,6 @@ public class MainActivity extends JFrame {
         invoiceScreen = new InvoiceScreen();
 
         // Other screens
-        SummaryScreen summaryScreen = new SummaryScreen();
         AdminLoginScreen adminLoginScreen = new AdminLoginScreen();
         AdminDashboardScreen adminDashboardScreen = new AdminDashboardScreen();
         AdminInvoicesScreen adminInvoicesScreen = new AdminInvoicesScreen();
@@ -66,9 +65,6 @@ public class MainActivity extends JFrame {
 
         // FIX: We add InvoiceScreen using the "INVOICE_SCREEN" ID so the button finds it.
         cardPanel.add(invoiceScreen, INVOICE_SCREEN);
-
-        // Add Summary Screen
-        cardPanel.add(summaryScreen, SUMMARY_SCREEN);
 
         // --- 4. Add Admin Side Screens to CardPanel ---
         cardPanel.add(adminLoginScreen, ADMIN_LOGIN_SCREEN);
