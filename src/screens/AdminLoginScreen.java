@@ -1,7 +1,7 @@
 package screens;
 
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 import main.MainActivity;
 
 public class AdminLoginScreen extends JPanel {
@@ -64,9 +64,12 @@ public class AdminLoginScreen extends JPanel {
         backButton.setFont(new Font("Arial", Font.PLAIN, 14));
         backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         backButton.setBackground(Color.WHITE);
-        backButton.setForeground(new Color(100, 100, 100)); // Grey color
+        backButton.setForeground(Color.BLACK);
         backButton.setFocusPainted(false);
-        backButton.setBorder(BorderFactory.createEmptyBorder(10, 30, 10, 30));
+        backButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.BLACK),
+            BorderFactory.createEmptyBorder(10, 30, 10, 30)
+        ));
         backButton.setMaximumSize(new Dimension(200, 40));
         backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
