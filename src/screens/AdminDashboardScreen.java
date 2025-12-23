@@ -222,9 +222,11 @@ public class AdminDashboardScreen extends JPanel {
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    if (line.contains("Amount due")) {
-                        String amountStr = line.substring(line.indexOf("Amount due") + 10).trim();
-                        amountStr = amountStr.replace("PHP", "").replace(",", "").trim();
+                    if (line.contains("TOTAL AMOUNT DUE:")) {
+                        String amountStr = line.replace("TOTAL AMOUNT DUE:", "")
+                                              .replace("PHP", "")
+                                              .replace(",", "")
+                                              .trim();
                         try {
                             totalRevenue += Double.parseDouble(amountStr);
                         } catch (NumberFormatException e) { /* ignore */ }
@@ -256,7 +258,9 @@ public class AdminDashboardScreen extends JPanel {
 
             for (int i = 0; i < limit; i++) {
                 File f = files[i];
-                String activityText = "New Invoice Generated: " + f.getName();
+                // Extract invoice ID from filename
+                String invoiceId = f.getName().replace(".txt", "");
+                String activityText = "Invoice Generated: " + invoiceId;
                 String dateText = sdf.format(new Date(f.lastModified()));
 
                 // Pass true if it's the last item to remove the border separator
@@ -269,10 +273,27 @@ public class AdminDashboardScreen extends JPanel {
     }
 
     private File[] getInvoiceFiles() {
-        File invoicesDir = new File("invoices");
-        if (!invoicesDir.exists()) invoicesDir = new File("src/main/invoices");
-        if (!invoicesDir.exists() || !invoicesDir.isDirectory()) return null;
+        // Try multiple invoice directory locations
+        File[] possibleDirs = {
+            new File("src/main/invoices"),
+            new File("src/invoices"),
+            new File("invoices"),
+            new File("../invoices"),
+            new File("./invoices")
+        };
+        
+        File invoicesDir = null;
+        for (File dir : possibleDirs) {
+            if (dir.exists() && dir.isDirectory()) {
+                invoicesDir = dir;
+                break;
+            }
+        }
+        
+        if (invoicesDir == null || !invoicesDir.isDirectory()) {
+            return null;
+        }
 
-        return invoicesDir.listFiles((dir, name) -> name.endsWith(".txt"));
+        return invoicesDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".txt"));
     }
 }

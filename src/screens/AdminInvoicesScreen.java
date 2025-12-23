@@ -37,7 +37,15 @@ public class AdminInvoicesScreen extends JPanel {
 
         // Set search listener AFTER table is created
         navBarPanel.setSearchListener(text -> {
-            this.currentSearchText = text.toLowerCase().trim();
+            String searchText = text.trim();
+            
+            if (searchText.isEmpty() || 
+                searchText.equals("Search") || 
+                searchText.equals("Search (YYYY-MM-DD)")) {
+                this.currentSearchText = "";
+            } else {
+                this.currentSearchText = searchText.toLowerCase();
+            }
             loadInvoicesFromFolder();
         });
 
@@ -114,6 +122,14 @@ public class AdminInvoicesScreen extends JPanel {
         invoiceTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
         invoiceTable.getTableHeader().setBackground(new Color(200, 200, 200));
         invoiceTable.getTableHeader().setReorderingAllowed(false);
+        
+        // Set cell renderer for left alignment
+        DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
+        leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+        
+        for (int i = 0; i < invoiceTable.getColumnCount(); i++) {
+            invoiceTable.getColumnModel().getColumn(i).setCellRenderer(leftRenderer);
+        }
 
         JScrollPane scrollPane = new JScrollPane(invoiceTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
@@ -166,17 +182,29 @@ public class AdminInvoicesScreen extends JPanel {
         if (tableModel == null) return; // Guard against null tableModel
         
         tableModel.setRowCount(0);
-        File invoicesDir = new File("invoices");
         
-        if (!invoicesDir.exists()) {
-            invoicesDir = new File("src/main/invoices");
+        // Try multiple invoice directory locations
+        File[] possibleDirs = {
+            new File("src/main/invoices"),
+            new File("src/invoices"),
+            new File("invoices"),
+            new File("../invoices"),
+            new File("./invoices")
+        };
+        
+        File invoicesDir = null;
+        for (File dir : possibleDirs) {
+            if (dir.exists() && dir.isDirectory()) {
+                invoicesDir = dir;
+                break;
+            }
         }
         
-        if (!invoicesDir.exists() || !invoicesDir.isDirectory()) {
+        if (invoicesDir == null || !invoicesDir.isDirectory()) {
             return;
         }
         
-        File[] invoiceFiles = invoicesDir.listFiles((dir, name) -> name.endsWith(".txt"));
+        File[] invoiceFiles = invoicesDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".txt"));
         if (invoiceFiles == null || invoiceFiles.length == 0) {
             return;
         }
@@ -186,17 +214,20 @@ public class AdminInvoicesScreen extends JPanel {
         for (File file : invoiceFiles) {
             try {
                 InvoiceData data = parseInvoiceFile(file);
-                if (data != null) {
-                    // Apply search filter - search by Invoice ID, Customer Name, or Date
-                    if (currentSearchText.isEmpty() || 
-                        data.invoiceId.toLowerCase().contains(currentSearchText) ||
-                        data.customerName.toLowerCase().contains(currentSearchText) ||
-                        data.date.contains(currentSearchText)) {
-                        
+                if (data != null && !data.invoiceId.isEmpty()) {
+                    // Apply search filter
+                    boolean matchesSearch = currentSearchText.isEmpty();
+                    if (!matchesSearch) {
+                        matchesSearch = data.invoiceId.toLowerCase().contains(currentSearchText) ||
+                                       data.customerName.toLowerCase().contains(currentSearchText) ||
+                                       data.date.toLowerCase().contains(currentSearchText);
+                    }
+                    
+                    if (matchesSearch) {
                         tableModel.addRow(new Object[]{
                             data.invoiceId,
                             data.customerName,
-                            data.itemsCount,
+                            String.valueOf(data.itemsCount), // Plain string for left alignment
                             data.date,
                             String.format("PHP %,.2f", data.totalAmount)
                         });
@@ -215,32 +246,98 @@ public class AdminInvoicesScreen extends JPanel {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             InvoiceData data = new InvoiceData();
             String line;
-            int lineNum = 0;
+            boolean inItemsSection = false;
             int itemsCount = 0;
             
             while ((line = reader.readLine()) != null) {
-                lineNum++;
                 line = line.trim();
                 
-                if (lineNum == 3 && line.startsWith("INV")) {
-                    data.invoiceId = line;
-                }
-                else if (line.contains("Billed to")) {
-                    String nextLine = reader.readLine();
-                    if (nextLine != null) {
-                        String[] parts = nextLine.trim().split("\\s{2,}");
-                        if (parts.length > 0) {
-                            data.customerName = parts[0].trim();
+                // Find invoice ID
+                if (data.invoiceId.isEmpty()) {
+                    if (line.startsWith("Invoice Number:")) {
+                        String[] parts = line.split("Invoice Number:");
+                        if (parts.length > 1) {
+                            data.invoiceId = parts[1].trim();
                         }
                     }
                 }
-                else if (line.matches("^\\s*[A-Za-z0-9\\s.-]+\\s+\\d+\\s+[0-9,\\.]+\\s+PHP.*")) {
-                    // Count items by matching item rows
-                    itemsCount++;
+                
+                // Find customer name
+                if (data.customerName.equals("Unknown")) {
+                    if (line.contains("BILL TO:")) {
+                        String nameLine = reader.readLine();
+                        if (nameLine != null) {
+                            nameLine = nameLine.trim();
+                            if (nameLine.startsWith("Name:")) {
+                                String[] parts = nameLine.split("Name:");
+                                if (parts.length > 1) {
+                                    data.customerName = parts[1].trim();
+                                    // Remove trailing comma if present
+                                    if (data.customerName.endsWith(",")) {
+                                        data.customerName = data.customerName.substring(0, data.customerName.length() - 1);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-                else if (line.contains("Amount due")) {
-                    String amountStr = line.substring(line.indexOf("Amount due") + 10).trim();
-                    amountStr = amountStr.replace("PHP", "").replace(",", "").trim();
+                
+                // Find date
+                if (line.startsWith("Date:")) {
+                    String[] parts = line.split("Date:");
+                    if (parts.length > 1) {
+                        data.date = parts[1].trim();
+                    }
+                }
+                
+                // Find items section
+                if (line.contains("DESCRIPTION") && line.contains("QTY") && 
+                    line.contains("UNIT PRICE") && line.contains("AMOUNT")) {
+                    inItemsSection = true;
+                    continue;
+                }
+                
+                // Count items in the items section
+                if (inItemsSection) {
+                    if (line.contains("---") || line.startsWith("TOTAL")) {
+                        inItemsSection = false;
+                    } 
+                    // Count non-empty lines that look like item rows
+                    else if (!line.isEmpty()) {
+                        // Item rows have: item name, quantity, "PHP X.XX", "PHP X.XX"
+                        if (line.contains("PHP") && line.split("\\s+").length >= 4) {
+                            String[] parts = line.split("\\s+");
+                            if (parts.length >= 2) {
+                                try {
+                                    int qty = Integer.parseInt(parts[1]);
+                                    if (qty > 0) {
+                                        itemsCount++;
+                                    }
+                                } catch (NumberFormatException e) {
+                                    // Look for a number somewhere in the line
+                                    for (int i = 1; i < parts.length; i++) {
+                                        try {
+                                            int qty = Integer.parseInt(parts[i]);
+                                            if (qty > 0) {
+                                                itemsCount++;
+                                                break;
+                                            }
+                                        } catch (NumberFormatException ex) {
+                                            continue;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Find total amount
+                if (line.contains("TOTAL AMOUNT DUE:")) {
+                    String amountStr = line.replace("TOTAL AMOUNT DUE:", "")
+                                          .replace("PHP", "")
+                                          .replace(",", "")
+                                          .trim();
                     try {
                         data.totalAmount = Double.parseDouble(amountStr);
                     } catch (NumberFormatException e) {
@@ -249,14 +346,76 @@ public class AdminInvoicesScreen extends JPanel {
                 }
             }
             
+            // If we didn't find items with the above logic, use a simpler count
+            if (itemsCount == 0) {
+                itemsCount = countItemsSimple(file);
+            }
+            
+            // If no date found, use file date
+            if (data.date == null || data.date.isEmpty()) {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd MMMM yyyy");
+                data.date = sdf.format(new Date(file.lastModified()));
+            }
+            
+            // If no invoice ID found, use filename
+            if (data.invoiceId.isEmpty()) {
+                String fileName = file.getName();
+                if (fileName.toLowerCase().endsWith(".txt")) {
+                    data.invoiceId = fileName.substring(0, fileName.length() - 4);
+                } else {
+                    data.invoiceId = fileName;
+                }
+            }
+            
+            // Clean up customer name
+            if (data.customerName.endsWith(",")) {
+                data.customerName = data.customerName.substring(0, data.customerName.length() - 1);
+            }
+            
+            // Set items count
             data.itemsCount = itemsCount;
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            data.date = sdf.format(new Date(file.lastModified()));
             
             return data;
+            
         } catch (IOException e) {
+            System.err.println("Error reading invoice file: " + file.getName());
             return null;
         }
+    }
+    
+    /**
+     * Simple item counting method
+     */
+    private int countItemsSimple(File file) {
+        int count = 0;
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            boolean pastHeader = false;
+            boolean beforeTotal = true;
+            
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                
+                if (line.contains("DESCRIPTION") && line.contains("QTY")) {
+                    pastHeader = true;
+                    continue;
+                }
+                
+                if (line.contains("TOTAL AMOUNT DUE:")) {
+                    beforeTotal = false;
+                }
+                
+                if (pastHeader && beforeTotal && !line.isEmpty() && !line.contains("---")) {
+                    if (line.split("\\s+").length >= 2) {
+                        count++;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error in simple item count for: " + file.getName());
+        }
+        
+        return Math.max(count, 0);
     }
 
     /**
@@ -283,14 +442,29 @@ public class AdminInvoicesScreen extends JPanel {
             return;
         }
         
-        String invoiceId = (String) tableModel.getValueAt(selectedRow, 0);
-        File invoiceFile = new File("invoices", invoiceId + ".txt");
+        // Convert view row index to model row index (for sorting)
+        int modelRow = invoiceTable.convertRowIndexToModel(selectedRow);
+        String invoiceId = (String) tableModel.getValueAt(modelRow, 0);
         
-        if (!invoiceFile.exists()) {
-            invoiceFile = new File("src/main/invoices", invoiceId + ".txt");
+        // Try multiple locations for the invoice file
+        File invoiceFile = null;
+        String[] possiblePaths = {
+            "src/main/invoices/" + invoiceId + ".txt",
+            "src/invoices/" + invoiceId + ".txt",
+            "invoices/" + invoiceId + ".txt",
+            "../invoices/" + invoiceId + ".txt",
+            "./invoices/" + invoiceId + ".txt"
+        };
+        
+        for (String path : possiblePaths) {
+            File testFile = new File(path);
+            if (testFile.exists()) {
+                invoiceFile = testFile;
+                break;
+            }
         }
         
-        if (!invoiceFile.exists()) {
+        if (invoiceFile == null || !invoiceFile.exists()) {
             JOptionPane.showMessageDialog(this, 
                 "Invoice file not found: " + invoiceId + ".txt",
                 "File Not Found", 
@@ -322,7 +496,7 @@ public class AdminInvoicesScreen extends JPanel {
                 
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, 
-                "Error reading invoice file: " + e.getMessage(),
+                "Error reading invoice file.",
                 "Error", 
                 JOptionPane.ERROR_MESSAGE);
         }
@@ -341,7 +515,9 @@ public class AdminInvoicesScreen extends JPanel {
             return;
         }
         
-        String invoiceId = (String) tableModel.getValueAt(selectedRow, 0);
+        // Convert view row index to model row index (for sorting)
+        int modelRow = invoiceTable.convertRowIndexToModel(selectedRow);
+        String invoiceId = (String) tableModel.getValueAt(modelRow, 0);
         
         int confirmResult = JOptionPane.showConfirmDialog(this, 
             "Are you sure you want to delete invoice " + invoiceId + "?\nThis action cannot be undone.",
@@ -353,13 +529,23 @@ public class AdminInvoicesScreen extends JPanel {
             return;
         }
         
-        File invoiceFile = new File("invoices", invoiceId + ".txt");
+        // Try multiple locations for the invoice file
+        File invoiceFile = null;
+        String[] possiblePaths = {
+            "src/main/invoices/" + invoiceId + ".txt",
+            "src/invoices/" + invoiceId + ".txt",
+            "invoices/" + invoiceId + ".txt"
+        };
         
-        if (!invoiceFile.exists()) {
-            invoiceFile = new File("src/main/invoices", invoiceId + ".txt");
+        for (String path : possiblePaths) {
+            File testFile = new File(path);
+            if (testFile.exists()) {
+                invoiceFile = testFile;
+                break;
+            }
         }
         
-        if (!invoiceFile.exists()) {
+        if (invoiceFile == null || !invoiceFile.exists()) {
             JOptionPane.showMessageDialog(this, 
                 "Invoice file not found: " + invoiceId + ".txt",
                 "File Not Found", 
