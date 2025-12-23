@@ -13,39 +13,66 @@ import main.MainActivity;
  */
 public class UserScreen extends JPanel {
 
-    private Map<String, Double> itemValueMap;
-    private Map<String, String> itemCategoryMap;
-    private Map<String, Integer> itemQuantityMap;
-    private Set<String> selectedCategories;
+    // Data structures - optimized to reduce memory
+    private final Map<String, InventoryItem> inventory; // Single map instead of three
+    private final Set<String> selectedCategories;
     private JPanel itemsPanel;
     private JLabel overallTotalLabel;
     private JLabel totalItemsLabel;
-    private java.util.List<JSpinner> quantitySpinners;
-    private Map<JSpinner, String> spinnerToItemMap;
-
+    private final java.util.List<ItemRowData> itemRows; // Replace two maps with single list
+    
     private JTextField nameInput;
     private JTextField contactInput;
     private JTextField addressInput;
 
     // Stores current search text
     private String currentSearchText = "";
-    private NavBarPanel navBarPanel; // Make this a class variable to access it later
+    private NavBarPanel navBarPanel;
+    
+    // Category constants
+    private static final String[] CATEGORY_IDS = {"1", "2", "3"};
+    private static final String[] CATEGORY_NAMES = {"Tools", "Building Materials", "Paint & Supplies"};
+    
+    // Inner class to hold inventory data efficiently
+    private static class InventoryItem {
+        final String name;
+        double price;
+        String category;
+        int quantity;
+        
+        InventoryItem(String name, double price, String category, int quantity) {
+            this.name = name;
+            this.price = price;
+            this.category = category;
+            this.quantity = quantity;
+        }
+    }
+    
+    // Inner class to track row components efficiently
+    private static class ItemRowData {
+        final String itemName;
+        final JSpinner spinner;
+        final JLabel totalLabel;
+        
+        ItemRowData(String itemName, JSpinner spinner, JLabel totalLabel) {
+            this.itemName = itemName;
+            this.spinner = spinner;
+            this.totalLabel = totalLabel;
+        }
+    }
 
     public UserScreen() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        // 1. Initialize Data Structures
-        itemValueMap = new HashMap<>();
-        itemCategoryMap = new HashMap<>();
-        itemQuantityMap = new HashMap<>();
+        // Initialize optimized data structures
+        inventory = new HashMap<>();
         selectedCategories = new HashSet<>();
-        quantitySpinners = new java.util.ArrayList<>();
-        spinnerToItemMap = new HashMap<>();
+        itemRows = new ArrayList<>();
 
-        // 2. Load Data
+        // Load Data and select all categories by default
         loadInventoryData();
-        selectedCategories.addAll(Arrays.asList("1", "2", "3"));
+        selectedCategories.addAll(Arrays.asList(CATEGORY_IDS));
 
         // 3. Main container
         JPanel mainContainer = new JPanel(new BorderLayout());
@@ -136,14 +163,16 @@ public class UserScreen extends JPanel {
     }
 
     private void loadSampleData() {
-        itemValueMap.put("Product A", 150.00); itemCategoryMap.put("Product A", "1"); itemQuantityMap.put("Product A", 10);
-        // Add more sample data for testing
-        itemValueMap.put("Product B", 250.00); itemCategoryMap.put("Product B", "2"); itemQuantityMap.put("Product B", 5);
-        itemValueMap.put("Product C", 75.00); itemCategoryMap.put("Product C", "3"); itemQuantityMap.put("Product C", 15);
+        inventory.put("Product A", new InventoryItem("Product A", 150.00, "1", 10));
+        inventory.put("Product B", new InventoryItem("Product B", 250.00, "2", 5));
+        inventory.put("Product C", new InventoryItem("Product C", 75.00, "3", 15));
     }
 
     private void parseInventoryJson(String jsonContent) {
         try {
+            // Clear existing data before loading
+            inventory.clear();
+            
             String jsonStr = jsonContent.replaceAll("\\s+", " ");
             int arrayStart = jsonStr.indexOf('[');
             int arrayEnd = jsonStr.lastIndexOf(']');
@@ -161,9 +190,7 @@ public class UserScreen extends JPanel {
                         try {
                             double value = Double.parseDouble(valueStr.replaceAll(",.*", "").trim());
                             int qty = (qtyStr != null) ? Integer.parseInt(qtyStr.trim()) : 0;
-                            itemValueMap.put(itemName, value);
-                            itemCategoryMap.put(itemName, category);
-                            itemQuantityMap.put(itemName, qty);
+                            inventory.put(itemName, new InventoryItem(itemName, value, category, qty));
                         } catch (Exception e) {
                             System.err.println("Error parsing item: " + itemName);
                         }
@@ -269,26 +296,32 @@ public class UserScreen extends JPanel {
     private JPanel createCategoryTogglePanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panel.setOpaque(false);
-        JLabel catLabel = new JLabel("Categories:"); catLabel.setFont(new Font("Arial", Font.BOLD, 12)); catLabel.setForeground(Color.BLACK);
+        JLabel catLabel = new JLabel("Categories:"); 
+        catLabel.setFont(new Font("Arial", Font.BOLD, 14)); 
+        catLabel.setForeground(Color.BLACK);
         panel.add(catLabel);
 
-        for (String cat : Arrays.asList("1", "2", "3")) {
-            JToggleButton btn = new JToggleButton(cat);
+        for (int i = 0; i < CATEGORY_IDS.length; i++) {
+            final String catId = CATEGORY_IDS[i];
+            final String catName = CATEGORY_NAMES[i];
+            
+            JToggleButton btn = new JToggleButton(catName);
             btn.setSelected(true);
             btn.setFont(new Font("Arial", Font.PLAIN, 12));
-            btn.setPreferredSize(new Dimension(50, 30));
+            btn.setPreferredSize(new Dimension(150, 32));
             btn.setBackground(new Color(130, 170, 255));
             btn.setForeground(Color.WHITE);
             btn.setFocusPainted(false);
+            btn.setBorder(BorderFactory.createLineBorder(new Color(100, 140, 225), 2));
             btn.addActionListener(e -> {
                 if (btn.isSelected()) {
-                    selectedCategories.add(cat);
+                    selectedCategories.add(catId);
                     btn.setBackground(new Color(130, 170, 255));
                     btn.setForeground(Color.WHITE);
                 } else {
-                    selectedCategories.remove(cat);
-                    btn.setBackground(new Color(200, 200, 200));
-                    btn.setForeground(Color.BLACK);
+                    selectedCategories.remove(catId);
+                    btn.setBackground(new Color(220, 220, 220));
+                    btn.setForeground(Color.GRAY);
                 }
                 refreshTableRows();
             });
@@ -298,20 +331,25 @@ public class UserScreen extends JPanel {
     }
 
     private void refreshTableRows() {
+        // Clear old components and references
         itemsPanel.removeAll();
-        quantitySpinners.clear();
-        spinnerToItemMap.clear();
-        java.util.List<String> sorted = new ArrayList<>(itemValueMap.keySet());
+        itemRows.clear();
+        
+        // Get sorted list of items
+        java.util.List<String> sorted = new ArrayList<>(inventory.keySet());
         Collections.sort(sorted);
 
         int visibleItems = 0;
         
-        for (String item : sorted) {
+        for (String itemName : sorted) {
+            InventoryItem item = inventory.get(itemName);
+            
             // Check Category
-            boolean matchCat = selectedCategories.contains(itemCategoryMap.get(item));
+            boolean matchCat = selectedCategories.contains(item.category);
 
             // Check Search - only apply if currentSearchText is not empty
-            boolean matchSearch = currentSearchText.isEmpty() || item.toLowerCase().contains(currentSearchText);
+            boolean matchSearch = currentSearchText.isEmpty() || 
+                                 itemName.toLowerCase().contains(currentSearchText);
 
             if (matchCat && matchSearch) {
                 itemsPanel.add(createItemRow(item));
@@ -321,12 +359,12 @@ public class UserScreen extends JPanel {
 
         // Add a message if no items match the filter
         if (visibleItems == 0) {
-            String message = "No items found";
+            StringBuilder msg = new StringBuilder("No items found");
             if (!currentSearchText.isEmpty()) {
-                message += " for search: '" + currentSearchText + "'";
+                msg.append(" for search: '").append(currentSearchText).append("'");
             }
 
-            JLabel noItemsLabel = new JLabel(message, SwingConstants.CENTER);
+            JLabel noItemsLabel = new JLabel(msg.toString(), SwingConstants.CENTER);
             noItemsLabel.setFont(new Font("Arial", Font.ITALIC, 14));
             noItemsLabel.setForeground(Color.GRAY);
             noItemsLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
@@ -338,34 +376,33 @@ public class UserScreen extends JPanel {
         updateOverallTotals();
     }
 
-    private JPanel createItemRow(String itemName) {
+    private JPanel createItemRow(InventoryItem item) {
         JPanel row = new JPanel(new GridLayout(1, 4, 5, 0));
         row.setOpaque(false);
         row.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-        double val = itemValueMap.get(itemName);
-        int qtyAvailable = itemQuantityMap.getOrDefault(itemName, 0);
-
-        JLabel nameLbl = getStyledLabel(itemName); nameLbl.setHorizontalAlignment(SwingConstants.LEFT);
+        JLabel nameLbl = getStyledLabel(item.name); 
+        nameLbl.setHorizontalAlignment(SwingConstants.LEFT);
         JLabel totalLbl = getStyledLabel("0.00");
-        JLabel valLbl = getStyledLabel(String.format("%.2f", val));
+        JLabel valLbl = getStyledLabel(String.format("%.2f", item.price));
 
         JComponent qtyComp;
-        if (qtyAvailable > 0) {
-            JSpinner s = new JSpinner(new SpinnerNumberModel(0, 0, qtyAvailable, 1));
-            s.setFont(new Font("Arial", Font.PLAIN, 13));
-            JComponent editor = s.getEditor();
+        if (item.quantity > 0) {
+            JSpinner spinner = new JSpinner(new SpinnerNumberModel(0, 0, item.quantity, 1));
+            spinner.setFont(new Font("Arial", Font.PLAIN, 13));
+            JComponent editor = spinner.getEditor();
             if (editor instanceof JSpinner.DefaultEditor) {
                 ((JSpinner.DefaultEditor)editor).getTextField().setForeground(Color.BLACK);
             }
 
-            quantitySpinners.add(s);
-            spinnerToItemMap.put(s, itemName);
-            s.addChangeListener(e -> {
-                updateTotalFromLabel(s, valLbl, totalLbl);
+            // Store row data efficiently
+            itemRows.add(new ItemRowData(item.name, spinner, totalLbl));
+            
+            spinner.addChangeListener(e -> {
+                updateTotalFromLabel(spinner, item.price, totalLbl);
                 updateOverallTotals();
             });
-            qtyComp = s;
+            qtyComp = spinner;
         } else {
             JLabel out = new JLabel("Out of Stock");
             out.setForeground(Color.RED);
@@ -375,16 +412,20 @@ public class UserScreen extends JPanel {
             totalLbl.setText("-");
         }
 
-        row.add(nameLbl); row.add(qtyComp); row.add(valLbl); row.add(totalLbl);
+        row.add(nameLbl); 
+        row.add(qtyComp); 
+        row.add(valLbl); 
+        row.add(totalLbl);
         return row;
     }
 
-    private void updateTotalFromLabel(JSpinner s, JLabel vLbl, JLabel tLbl) {
+    private void updateTotalFromLabel(JSpinner spinner, double price, JLabel totalLabel) {
         try {
-            int q = (Integer) s.getValue();
-            double v = Double.parseDouble(vLbl.getText());
-            tLbl.setText(String.format("%.2f", q * v));
-        } catch (Exception e) { tLbl.setText("0.00"); }
+            int qty = (Integer) spinner.getValue();
+            totalLabel.setText(String.format("%.2f", qty * price));
+        } catch (Exception e) { 
+            totalLabel.setText("0.00"); 
+        }
     }
 
     private JPanel getBottomPanel() {
@@ -426,14 +467,20 @@ public class UserScreen extends JPanel {
 
     private void updateOverallTotals() {
         if (overallTotalLabel == null) return;
-        double total = 0; int count = 0;
-        for (JSpinner s : quantitySpinners) {
-            int q = (Integer) s.getValue();
-            if (q > 0) {
-                total += q * itemValueMap.get(spinnerToItemMap.get(s));
-                count += q;
+        double total = 0; 
+        int count = 0;
+        
+        for (ItemRowData row : itemRows) {
+            int qty = (Integer) row.spinner.getValue();
+            if (qty > 0) {
+                InventoryItem item = inventory.get(row.itemName);
+                if (item != null) {
+                    total += qty * item.price;
+                    count += qty;
+                }
             }
         }
+        
         overallTotalLabel.setText(String.format("%.2f", total));
         totalItemsLabel.setText(String.valueOf(count));
     }
@@ -492,14 +539,16 @@ public class UserScreen extends JPanel {
         Map<String, Integer> decrements = new HashMap<>();
         double total = 0;
 
-        for (JSpinner s : quantitySpinners) {
-            int q = (Integer) s.getValue();
-            if (q > 0) {
-                String item = spinnerToItemMap.get(s);
-                double p = itemValueMap.get(item);
-                items.add(new InvoiceItem(item, q, p, q * p));
-                decrements.put(item, q);
-                total += q * p;
+        for (ItemRowData row : itemRows) {
+            int qty = (Integer) row.spinner.getValue();
+            if (qty > 0) {
+                InventoryItem item = inventory.get(row.itemName);
+                if (item != null) {
+                    double itemTotal = qty * item.price;
+                    items.add(new InvoiceItem(item.name, qty, item.price, itemTotal));
+                    decrements.put(item.name, qty);
+                    total += itemTotal;
+                }
             }
         }
 
@@ -512,7 +561,9 @@ public class UserScreen extends JPanel {
         if (updateInventoryFile(decrements)) {
             writeInvoiceToFile(name, contact, addr, items, total);
             JOptionPane.showMessageDialog(this, "Invoice Generated!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            nameInput.setText(""); contactInput.setText(""); addressInput.setText("");
+            nameInput.setText(""); 
+            contactInput.setText(""); 
+            addressInput.setText("");
             
             // Clear search after successful checkout
             resetSearch();
@@ -600,25 +651,40 @@ public class UserScreen extends JPanel {
     private void writeInvoiceToFile(String n, String c, String a, java.util.List<InvoiceItem> items, double t) {
         try {
             String inv = "INV" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
-            File d = new File("invoices"); if (!d.exists()) d.mkdir();
+            File d = new File("invoices"); 
+            if (!d.exists()) d.mkdir();
             File f = new File(d, inv + ".txt");
+            
+            // Use StringBuilder for efficient string building
+            StringBuilder content = new StringBuilder(2000);
+            content.append("=".repeat(80)).append("\n\n  ");
+            content.append(inv).append("\n\n  Due date");
+            content.append(" ".repeat(36)).append("Subject\n  ");
+            
+            String date = new SimpleDateFormat("dd MMMM yyyy").format(new Date());
+            content.append(date).append(" ".repeat(30 - date.length()));
+            content.append("Service for ").append(date).append("\n\n  Billed to");
+            content.append(" ".repeat(37)).append("Currency\n  ");
+            content.append(n).append(" ".repeat(Math.max(1, 30 - n.length())));
+            content.append("PHP - Philippine Pesos\n  ").append(c).append("\n  ");
+            content.append(a).append("\n\n  ").append("-".repeat(76));
+            content.append("\n\n  DESCRIPTION").append(" ".repeat(30));
+            content.append("QTY").append(" ".repeat(8)).append("UNIT PRICE");
+            content.append(" ".repeat(8)).append("AMOUNT\n\n");
+            
+            for (InvoiceItem i : items) {
+                String desc = i.description.length() > 35 ? 
+                             i.description.substring(0, 32) + "..." : i.description;
+                content.append(String.format("  %-40s %3d %,15.3f PHP %,15.3f PHP%n", 
+                    desc, i.qty, i.unitPrice, i.amount));
+            }
+            
+            content.append("\n").append(" ".repeat(55)).append("Amount due");
+            content.append(String.format("%,16.3f PHP", t)).append("\n\n");
+            content.append("=".repeat(80));
+            
             try (PrintWriter w = new PrintWriter(new FileWriter(f))) {
-                w.println("=".repeat(80));
-                w.println("\n  " + inv + "\n");
-                w.println("  Due date" + " ".repeat(36) + "Subject");
-                String date = new SimpleDateFormat("dd MMMM yyyy").format(new Date());
-                w.println("  " + date + " ".repeat(30 - date.length()) + "Service for " + date);
-                w.println("\n  Billed to" + " ".repeat(37) + "Currency");
-                w.println("  " + n + " ".repeat(Math.max(1, 30 - n.length())) + "PHP - Philippine Pesos");
-                w.println("  " + c);
-                w.println("  " + a);
-                w.println("\n  " + "-".repeat(76) + "\n");
-                w.println("  DESCRIPTION" + " ".repeat(30) + "QTY" + " ".repeat(8) + "UNIT PRICE" + " ".repeat(8) + "AMOUNT\n");
-                for (InvoiceItem i : items) {
-                    w.printf("  %-40s %3d %,15.3f PHP %,15.3f PHP%n", (i.description.length()>35?i.description.substring(0,32)+"...":i.description), i.qty, i.unitPrice, i.amount);
-                }
-                w.println("\n" + " ".repeat(55) + "Amount due" + String.format("%,16.3f PHP", t));
-                w.println("\n" + "=".repeat(80));
+                w.print(content.toString());
             }
         } catch (Exception e) {
             System.err.println("Error writing invoice: " + e.getMessage());
