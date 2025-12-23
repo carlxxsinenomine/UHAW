@@ -12,6 +12,7 @@ public class InvoiceScreen extends JPanel {
     private DefaultTableModel tableModel;
     private JTable purchaseTable;
     private String currentSearchText = "";
+    private NavBarPanel navBarPanel; // Store reference to nav bar
 
     /**
      * Constructor that initializes and displays the PurchaseHistoryScreen.
@@ -27,7 +28,7 @@ public class InvoiceScreen extends JPanel {
         mainContainer.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
         // Navigation bar with search listener
-        NavBarPanel navBarPanel = new NavBarPanel("Purchase History");
+        navBarPanel = new NavBarPanel("Purchase History");
         
         // Title and action buttons panel
         JPanel topPanel = createTopPanel();
@@ -40,9 +41,6 @@ public class InvoiceScreen extends JPanel {
             this.currentSearchText = text.toLowerCase().trim();
             loadPurchasesFromFolder();
         });
-        
-        // Reset search to ensure clean state
-        navBarPanel.resetSearch();
 
         // Content panel
         JPanel contentPanel = new JPanel(new BorderLayout(0, 15));
@@ -54,6 +52,25 @@ public class InvoiceScreen extends JPanel {
         mainContainer.add(contentPanel, BorderLayout.CENTER);
 
         add(mainContainer);
+        
+        // Add component listener to detect when screen becomes visible
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentShown(java.awt.event.ComponentEvent evt) {
+                resetSearch();
+            }
+        });
+    }
+    
+    /**
+     * Resets the search when screen becomes visible
+     */
+    private void resetSearch() {
+        if (navBarPanel != null) {
+            navBarPanel.resetSearch();
+        }
+        currentSearchText = "";
+        loadPurchasesFromFolder();
     }
 
     /**

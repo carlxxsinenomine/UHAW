@@ -12,6 +12,7 @@ public class AdminInvoicesScreen extends JPanel {
     private DefaultTableModel tableModel;
     private JTable invoiceTable;
     private String currentSearchText = "";
+    private AdminNavBarPanel navBarPanel; // Store reference to nav bar
 
     /**
      * Constructor that initializes and displays the AdminInvoicesScreen.
@@ -26,7 +27,7 @@ public class AdminInvoicesScreen extends JPanel {
         mainContainer.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
         // Navigation bar
-        AdminNavBarPanel navBarPanel = new AdminNavBarPanel("Invoices");
+        navBarPanel = new AdminNavBarPanel("Invoices");
 
         // Title panel
         JPanel topPanel = createTopPanel();
@@ -39,9 +40,6 @@ public class AdminInvoicesScreen extends JPanel {
             this.currentSearchText = text.toLowerCase().trim();
             loadInvoicesFromFolder();
         });
-        
-        // Reset search to ensure clean state
-        navBarPanel.resetSearch();
 
         // Content panel
         JPanel contentPanel = new JPanel(new BorderLayout(0, 15));
@@ -53,6 +51,25 @@ public class AdminInvoicesScreen extends JPanel {
         mainContainer.add(contentPanel, BorderLayout.CENTER);
 
         add(mainContainer);
+        
+        // Add component listener to detect when screen becomes visible
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentShown(java.awt.event.ComponentEvent evt) {
+                resetSearch();
+            }
+        });
+    }
+
+    /**
+     * Resets the search when screen becomes visible
+     */
+    private void resetSearch() {
+        if (navBarPanel != null) {
+            navBarPanel.resetSearch();
+        }
+        currentSearchText = "";
+        loadInvoicesFromFolder();
     }
 
     /**

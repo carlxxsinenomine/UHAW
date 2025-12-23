@@ -29,6 +29,7 @@ public class UserScreen extends JPanel {
 
     // Stores current search text
     private String currentSearchText = "";
+    private NavBarPanel navBarPanel; // Make this a class variable to access it later
 
     public UserScreen() {
         setLayout(new BorderLayout());
@@ -52,10 +53,21 @@ public class UserScreen extends JPanel {
         mainContainer.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
         // 4. Navigation Bar with Search
-        NavBarPanel navBarPanel = new NavBarPanel("USER");
+        navBarPanel = new NavBarPanel("USER");
         navBarPanel.setSearchListener(text -> {
-            this.currentSearchText = text.toLowerCase().trim();
-            refreshTableRows(); // Filter the list when typing
+            // Check if text is placeholder or actual search
+            String searchText = text.trim();
+
+            // If text is placeholder or empty, clear search
+            if (searchText.isEmpty() || 
+                searchText.equals("Search") || 
+                searchText.equals("Search (YYYY-MM-DD)")) {
+                this.currentSearchText = "";
+            } else {
+                this.currentSearchText = searchText.toLowerCase();
+            }
+
+            refreshTableRows();
         });
 
         // 5. Title panel
@@ -89,7 +101,16 @@ public class UserScreen extends JPanel {
 
     public void refreshData() {
         loadInventoryData();
+        resetSearch(); // Clear search when refreshing
         refreshTableRows();
+    }
+
+    // NEW METHOD: Reset search when screen is shown again
+    public void resetSearch() {
+        currentSearchText = "";
+        if (navBarPanel != null) {
+            navBarPanel.resetSearch(); // FIXED: Changed from clearSearchField() to resetSearch()
+        }
     }
 
     private void loadInventoryData() {
@@ -116,6 +137,9 @@ public class UserScreen extends JPanel {
 
     private void loadSampleData() {
         itemValueMap.put("Product A", 150.00); itemCategoryMap.put("Product A", "1"); itemQuantityMap.put("Product A", 10);
+        // Add more sample data for testing
+        itemValueMap.put("Product B", 250.00); itemCategoryMap.put("Product B", "2"); itemQuantityMap.put("Product B", 5);
+        itemValueMap.put("Product C", 75.00); itemCategoryMap.put("Product C", "3"); itemQuantityMap.put("Product C", 15);
     }
 
     private void parseInventoryJson(String jsonContent) {
@@ -140,11 +164,15 @@ public class UserScreen extends JPanel {
                             itemValueMap.put(itemName, value);
                             itemCategoryMap.put(itemName, category);
                             itemQuantityMap.put(itemName, qty);
-                        } catch (Exception e) {}
+                        } catch (Exception e) {
+                            System.err.println("Error parsing item: " + itemName);
+                        }
                     }
                 }
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            System.err.println("Error parsing JSON: " + e.getMessage());
+        }
     }
 
     private String extractJsonValue(String jsonStr, String key) {
@@ -276,17 +304,35 @@ public class UserScreen extends JPanel {
         java.util.List<String> sorted = new ArrayList<>(itemValueMap.keySet());
         Collections.sort(sorted);
 
+        int visibleItems = 0;
+        
         for (String item : sorted) {
             // Check Category
             boolean matchCat = selectedCategories.contains(itemCategoryMap.get(item));
 
-            // Check Search (NEW)
+            // Check Search - only apply if currentSearchText is not empty
             boolean matchSearch = currentSearchText.isEmpty() || item.toLowerCase().contains(currentSearchText);
 
             if (matchCat && matchSearch) {
                 itemsPanel.add(createItemRow(item));
+                visibleItems++;
             }
         }
+
+        // Add a message if no items match the filter
+        if (visibleItems == 0) {
+            String message = "No items found";
+            if (!currentSearchText.isEmpty()) {
+                message += " for search: '" + currentSearchText + "'";
+            }
+
+            JLabel noItemsLabel = new JLabel(message, SwingConstants.CENTER);
+            noItemsLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+            noItemsLabel.setForeground(Color.GRAY);
+            noItemsLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+            itemsPanel.add(noItemsLabel);
+        }
+
         itemsPanel.revalidate();
         itemsPanel.repaint();
         updateOverallTotals();
@@ -360,6 +406,17 @@ public class UserScreen extends JPanel {
         JButton checkoutButton = createActionButton("Checkout", new Color(34, 139, 34));
         checkoutButton.addActionListener(e -> generateInvoice());
 
+        // NEW: Add a Clear Search button
+        JButton clearSearchButton = createActionButton("Clear Search", new Color(100, 100, 100));
+        clearSearchButton.addActionListener(e -> {
+            currentSearchText = "";
+            if (navBarPanel != null) {
+                navBarPanel.resetSearch(); // FIXED: Changed from clearSearchField() to resetSearch()
+            }
+            refreshTableRows();
+        });
+
+        buttons.add(clearSearchButton);
         buttons.add(checkoutButton);
 
         bottomPanel.add(totals, BorderLayout.WEST);
@@ -456,6 +513,10 @@ public class UserScreen extends JPanel {
             writeInvoiceToFile(name, contact, addr, items, total);
             JOptionPane.showMessageDialog(this, "Invoice Generated!", "Success", JOptionPane.INFORMATION_MESSAGE);
             nameInput.setText(""); contactInput.setText(""); addressInput.setText("");
+            
+            // Clear search after successful checkout
+            resetSearch();
+            refreshTableRows();
 
             if (MainActivity.getInstance() != null) {
                 MainActivity.getInstance().refreshAllScreens();
@@ -559,17 +620,43 @@ public class UserScreen extends JPanel {
                 w.println("\n" + " ".repeat(55) + "Amount due" + String.format("%,16.3f PHP", t));
                 w.println("\n" + "=".repeat(80));
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            System.err.println("Error writing invoice: " + e.getMessage());
+        }
     }
 
-    private static class InvoiceItem { String description; int qty; double unitPrice, amount; InvoiceItem(String d, int q, double p, double a){this.description=d;this.qty=q;this.unitPrice=p;this.amount=a;}}
-    static class RoundedBorder extends javax.swing.border.AbstractBorder {
-        int r; Color c; RoundedBorder(int r, Color c){this.r=r;this.c=c;}
-        public void paintBorder(Component c, Graphics g, int x, int y, int w, int h){
-            Graphics2D g2=(Graphics2D)g.create(); g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(this.c); g2.drawRoundRect(x,y,w-1,h-1,r,r); g2.dispose();
+    private static class InvoiceItem { 
+        String description; 
+        int qty; 
+        double unitPrice, amount; 
+        InvoiceItem(String d, int q, double p, double a){
+            this.description=d;
+            this.qty=q;
+            this.unitPrice=p;
+            this.amount=a;
         }
-        public Insets getBorderInsets(Component c){return new Insets(2,2,2,2);}
-        public Insets getBorderInsets(Component c, Insets i){i.left=i.right=i.bottom=i.top=2;return i;}
+    }
+    
+    static class RoundedBorder extends javax.swing.border.AbstractBorder {
+        int r; 
+        Color c; 
+        RoundedBorder(int r, Color c){
+            this.r=r;
+            this.c=c;
+        }
+        public void paintBorder(Component c, Graphics g, int x, int y, int w, int h){
+            Graphics2D g2=(Graphics2D)g.create(); 
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(this.c); 
+            g2.drawRoundRect(x,y,w-1,h-1,r,r); 
+            g2.dispose();
+        }
+        public Insets getBorderInsets(Component c){
+            return new Insets(2,2,2,2);
+        }
+        public Insets getBorderInsets(Component c, Insets i){
+            i.left=i.right=i.bottom=i.top=2;
+            return i;
+        }
     }
 }

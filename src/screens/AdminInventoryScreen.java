@@ -13,6 +13,7 @@ public class AdminInventoryScreen extends JPanel {
     private JTable inventoryTable;
     private java.util.List<InventoryItem> inventoryItems;
     private String currentSearchText = "";
+    private AdminNavBarPanel navBarPanel; // Store reference to nav bar
 
     private static class InventoryItem {
         String itemName;
@@ -42,7 +43,7 @@ public class AdminInventoryScreen extends JPanel {
         mainContainer.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
         // --- SETUP NAV BAR ---
-        AdminNavBarPanel navBarPanel = new AdminNavBarPanel("Inventory");
+        navBarPanel = new AdminNavBarPanel("Inventory");
 
         JPanel topPanel = createTopPanel();
         JPanel tablePanel = createTablePanel();
@@ -53,8 +54,6 @@ public class AdminInventoryScreen extends JPanel {
             populateTable();
         });
 
-        navBarPanel.resetSearch();
-
         JPanel contentPanel = new JPanel(new BorderLayout(0, 15));
         contentPanel.setOpaque(false);
         contentPanel.add(topPanel, BorderLayout.NORTH);
@@ -64,6 +63,25 @@ public class AdminInventoryScreen extends JPanel {
         mainContainer.add(contentPanel, BorderLayout.CENTER);
 
         add(mainContainer);
+        
+        // Add component listener to detect when screen becomes visible
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentShown(java.awt.event.ComponentEvent evt) {
+                resetSearch();
+            }
+        });
+    }
+    
+    /**
+     * Resets the search when screen becomes visible
+     */
+    private void resetSearch() {
+        if (navBarPanel != null) {
+            navBarPanel.resetSearch();
+        }
+        currentSearchText = "";
+        populateTable();
     }
 
     public void refreshData() {

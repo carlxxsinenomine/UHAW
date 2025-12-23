@@ -11,6 +11,7 @@ public class NavBarPanel extends JPanel {
     private String activeScreen;
     private Consumer<String> searchListener; // Listener for search text
     private JTextField searchField;
+    private String placeholderText; // Store the placeholder text
 
     public NavBarPanel(String activeScreen) {
         this.activeScreen = activeScreen;
@@ -43,25 +44,6 @@ public class NavBarPanel extends JPanel {
 
         add(leftPanel, BorderLayout.WEST);
         add(rightPanel, BorderLayout.EAST);
-        
-        // Set initial placeholder based on screen
-        updateSearchPlaceholder();
-    }
-
-    /**
-     * Updates the search field placeholder based on the active screen.
-     */
-    private void updateSearchPlaceholder() {
-        String placeholder;
-        if (activeScreen.equals("Purchase History")) {
-            placeholder = "Search (YYYY-MM-DD)";
-        } else {
-            placeholder = "Search";
-        }
-        
-        if (searchField != null && searchField.getForeground() == Color.GRAY) {
-            searchField.setText(placeholder);
-        }
     }
 
     /**
@@ -76,8 +58,8 @@ public class NavBarPanel extends JPanel {
      */
     public void resetSearch() {
         if (searchField != null) {
-            String placeholder = activeScreen.equals("Purchase History") ? "Search (YYYY-MM-DD)" : "Search";
-            searchField.setText(placeholder);
+            placeholderText = activeScreen.equals("Purchase History") ? "Search (YYYY-MM-DD)" : "Search";
+            searchField.setText(placeholderText);
             searchField.setForeground(Color.GRAY);
             // Trigger the listener to clear any filters
             if (searchListener != null) {
@@ -86,10 +68,20 @@ public class NavBarPanel extends JPanel {
         }
     }
 
+    /**
+     * Gets the actual search text (excluding placeholder).
+     */
+    public String getSearchText() {
+        if (searchField != null && searchField.getForeground() == Color.GRAY) {
+            return ""; // Return empty if showing placeholder
+        }
+        return searchField != null ? searchField.getText() : "";
+    }
+
     private JTextField getSearchField() {
-        String placeholder = activeScreen.equals("Purchase History") ? "Search (YYYY-MM-DD)" : "Search";
+        placeholderText = activeScreen.equals("Purchase History") ? "Search (YYYY-MM-DD)" : "Search";
         JTextField searchField = new JTextField(20);
-        searchField.setText(placeholder);
+        searchField.setText(placeholderText);
         searchField.setFont(new Font("Arial", Font.PLAIN, 14));
         searchField.setForeground(Color.GRAY);
         searchField.setBackground(Color.WHITE);
@@ -104,8 +96,7 @@ public class NavBarPanel extends JPanel {
         searchField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent evt) {
-                String currentPlaceholder = activeScreen.equals("Purchase History") ? "Search (YYYY-MM-DD)" : "Search";
-                if (searchField.getText().equals(currentPlaceholder)) {
+                if (searchField.getText().equals(placeholderText)) {
                     searchField.setText("");
                     searchField.setForeground(Color.BLACK);
                 }
@@ -113,9 +104,12 @@ public class NavBarPanel extends JPanel {
             @Override
             public void focusLost(FocusEvent evt) {
                 if (searchField.getText().isEmpty()) {
-                    String currentPlaceholder = activeScreen.equals("Purchase History") ? "Search (YYYY-MM-DD)" : "Search";
-                    searchField.setText(currentPlaceholder);
+                    searchField.setText(placeholderText);
                     searchField.setForeground(Color.GRAY);
+                    // When focus is lost and we show placeholder, trigger empty search
+                    if (searchListener != null) {
+                        searchListener.accept("");
+                    }
                 }
             }
         });
@@ -128,11 +122,11 @@ public class NavBarPanel extends JPanel {
 
             private void onChange() {
                 if (searchListener != null) {
-                    // Ignore placeholder text
-                    if (searchField.getForeground() == Color.GRAY) {
-                        searchListener.accept("");
-                    } else {
+                    // Only trigger if not showing placeholder text
+                    if (searchField.getForeground() != Color.GRAY) {
                         searchListener.accept(searchField.getText());
+                    } else {
+                        searchListener.accept(""); // Send empty string when showing placeholder
                     }
                 }
             }
