@@ -14,6 +14,10 @@ public class AdminInventoryScreen extends JPanel {
     private java.util.List<InventoryItem> inventoryItems;
     private String currentSearchText = "";
     private AdminNavBarPanel navBarPanel; // Store reference to nav bar
+    
+    // Category mapping
+    private static final String[] CATEGORY_IDS = {"1", "2", "3"};
+    private static final String[] CATEGORY_NAMES = {"Tools", "Building Materials", "Paint & Supplies"};
 
     private static class InventoryItem {
         String itemName;
@@ -264,11 +268,24 @@ public class AdminInventoryScreen extends JPanel {
                         item.itemName,
                         item.description,
                         String.format("PHP %.2f", item.value),
-                        item.category,
+                        getCategoryName(item.category),
                         item.quantity
                 });
             }
         }
+    }
+    
+    /**
+     * Converts category ID to human-readable name
+     */
+    private String getCategoryName(String categoryId) {
+        if (categoryId == null) return "Unknown";
+        for (int i = 0; i < CATEGORY_IDS.length; i++) {
+            if (CATEGORY_IDS[i].equals(categoryId)) {
+                return CATEGORY_NAMES[i];
+            }
+        }
+        return categoryId; // Return ID if not found
     }
 
     private void showAddItemDialog() {
@@ -284,7 +301,7 @@ public class AdminInventoryScreen extends JPanel {
         JLabel descLabel = new JLabel("Description:"); JTextField descField = new JTextField();
         JLabel valueLabel = new JLabel("Value:"); JTextField valueField = new JTextField();
         JLabel categoryLabel = new JLabel("Category:");
-        String[] categories = {"1", "2", "3"};
+        String[] categories = {"1 - Tools", "2 - Building Materials", "3 - Paint & Supplies"};
         JComboBox<String> categoryCombo = new JComboBox<>(categories);
         JLabel qtyLabel = new JLabel("Quantity:"); JTextField qtyField = new JTextField();
 
@@ -303,7 +320,8 @@ public class AdminInventoryScreen extends JPanel {
                 String name = nameField.getText().trim();
                 String desc = descField.getText().trim();
                 double value = Double.parseDouble(valueField.getText().trim());
-                String category = (String) categoryCombo.getSelectedItem();
+                String categorySelection = (String) categoryCombo.getSelectedItem();
+                String category = categorySelection.substring(0, 1); // Extract ID from "1 - Tools"
                 int qty = Integer.parseInt(qtyField.getText().trim());
 
                 if (name.isEmpty()) {
@@ -358,8 +376,15 @@ public class AdminInventoryScreen extends JPanel {
         JTextField nameField = new JTextField(item.itemName);
         JTextField descField = new JTextField(item.description);
         JTextField valueField = new JTextField(String.valueOf(item.value));
-        JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"1", "2", "3"});
-        categoryCombo.setSelectedItem(item.category);
+        String[] categories = {"1 - Tools", "2 - Building Materials", "3 - Paint & Supplies"};
+        JComboBox<String> categoryCombo = new JComboBox<>(categories);
+        // Select the correct category based on item's category ID
+        for (int i = 0; i < CATEGORY_IDS.length; i++) {
+            if (CATEGORY_IDS[i].equals(item.category)) {
+                categoryCombo.setSelectedIndex(i);
+                break;
+            }
+        }
         JTextField qtyField = new JTextField(String.valueOf(item.quantity));
 
         formPanel.add(new JLabel("Item Name:")); formPanel.add(nameField);
@@ -378,7 +403,8 @@ public class AdminInventoryScreen extends JPanel {
                 finalItem.itemName = nameField.getText().trim();
                 finalItem.description = descField.getText().trim();
                 finalItem.value = Double.parseDouble(valueField.getText().trim());
-                finalItem.category = (String) categoryCombo.getSelectedItem();
+                String categorySelection = (String) categoryCombo.getSelectedItem();
+                finalItem.category = categorySelection.substring(0, 1); // Extract ID from "1 - Tools"
                 finalItem.quantity = Integer.parseInt(qtyField.getText().trim());
 
                 saveInventoryData();

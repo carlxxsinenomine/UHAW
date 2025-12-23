@@ -823,7 +823,7 @@ public class UserScreen extends JPanel {
 
             // Use StringBuilder for efficient string building
             StringBuilder content = new StringBuilder(2000);
-            String date = new SimpleDateFormat("dd MMMM yyyy").format(new Date());
+            String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 
             // Header
             content.append("=".repeat(80)).append("\n\n");

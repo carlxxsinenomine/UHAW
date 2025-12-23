@@ -4,23 +4,24 @@
 
 ================================================================================
 
-  Invoice Number: INV20251223-205625
-  Date: 23 December 2025
+  Invoice Number: INV20251223-222443
+  Date: 2025-12-23
 
   BILL TO:
-  Name: 123
-  Contact No.: 123
-  Address: 12
+  Name: DeepSeek
+  Contact No.: 2324378323
+  Address: gjkfgbdergfdbds
 
   ----------------------------------------------------------------------------
 
   DESCRIPTION                                 QTY         UNIT PRICE             AMOUNT
 
-  Bathroom Cleaner                              1          PHP 40.00          PHP 40.00
+  Hammer Set                                   10          PHP 75.50         PHP 755.00
+  Power Drill                                  12         PHP 150.00       PHP 1,800.00
 
   ----------------------------------------------------------------------------
 
-  TOTAL AMOUNT DUE:                                                           PHP 40.00
+  TOTAL AMOUNT DUE:                                                        PHP 2,555.00
 
 ================================================================================
   Thank you for your business!

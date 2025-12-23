@@ -215,12 +215,17 @@ public class AdminInvoicesScreen extends JPanel {
             try {
                 InvoiceData data = parseInvoiceFile(file);
                 if (data != null && !data.invoiceId.isEmpty()) {
-                    // Apply search filter
+                    // Apply strict date-only search filter
                     boolean matchesSearch = currentSearchText.isEmpty();
                     if (!matchesSearch) {
-                        matchesSearch = data.invoiceId.toLowerCase().contains(currentSearchText) ||
-                                       data.customerName.toLowerCase().contains(currentSearchText) ||
-                                       data.date.toLowerCase().contains(currentSearchText);
+                        // Validate that search text follows YYYY-MM-DD format (strict)
+                        if (isValidDateFormat(currentSearchText)) {
+                            // Only search in the date field
+                            matchesSearch = data.date.toLowerCase().contains(currentSearchText);
+                        } else {
+                            // Invalid format - filter out everything
+                            matchesSearch = false;
+                        }
                     }
                     
                     if (matchesSearch) {
@@ -572,6 +577,43 @@ public class AdminInvoicesScreen extends JPanel {
                 "Error", 
                 JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    /**
+     * Validates if the search text follows the strict YYYY-MM-DD format.
+     * Allows partial dates like "2025", "2025-12", or "2025-12-23"
+     * but rejects incorrect formats like "12-23-2025" or "23-12-2025"
+     */
+    private boolean isValidDateFormat(String searchText) {
+        if (searchText == null || searchText.isEmpty()) {
+            return false;
+        }
+        
+        // Pattern: YYYY or YYYY-MM or YYYY-MM-DD
+        // Year must be 4 digits, month and day must be 2 digits
+        // Must start with a digit (year)
+        if (!Character.isDigit(searchText.charAt(0))) {
+            return false;
+        }
+        
+        String[] parts = searchText.split("-");
+        
+        // Check each part
+        if (parts.length == 1) {
+            // Only year: must be 1-4 digits
+            return parts[0].matches("\\d{1,4}");
+        } else if (parts.length == 2) {
+            // Year-Month: year must be 1-4 digits, month must be 1-2 digits
+            return parts[0].matches("\\d{1,4}") && parts[1].matches("\\d{1,2}");
+        } else if (parts.length == 3) {
+            // Year-Month-Day: year must be 1-4 digits, month and day must be 1-2 digits
+            return parts[0].matches("\\d{1,4}") && 
+                   parts[1].matches("\\d{1,2}") && 
+                   parts[2].matches("\\d{1,2}");
+        }
+        
+        // More than 3 parts or invalid format
+        return false;
     }
 
     /**

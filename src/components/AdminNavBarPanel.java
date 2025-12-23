@@ -102,11 +102,18 @@ public class AdminNavBarPanel extends JPanel {
             }
             @Override
             public void focusLost(FocusEvent evt) {
-                if (searchField.getText().isEmpty()) {
-                    String currentPlaceholder = activeScreen.equals("Invoices") ? "Search (YYYY-MM-DD)" : "Search";
-                    searchField.setText(currentPlaceholder);
-                    searchField.setForeground(Color.GRAY);
-                }
+                // Use invokeLater to allow other UI interactions (like spinner clicks) to complete first
+                SwingUtilities.invokeLater(() -> {
+                    if (searchField.getText().isEmpty()) {
+                        String currentPlaceholder = activeScreen.equals("Invoices") ? "Search (YYYY-MM-DD)" : "Search";
+                        searchField.setText(currentPlaceholder);
+                        searchField.setForeground(Color.GRAY);
+                        // When focus is lost and we show placeholder, trigger empty search
+                        if (searchListener != null) {
+                            searchListener.accept("");
+                        }
+                    }
+                });
             }
         });
 

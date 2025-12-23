@@ -4,21 +4,21 @@
     "description": "Cordless 18V power drill with battery",
     "value": 150.0,
     "category": "1",
-    "quantity": 10
+    "quantity": 88
   },
   {
     "itemName": "Hammer Set",
     "description": "3-piece claw hammer set with grip",
     "value": 75.5,
     "category": "1",
-    "quantity": 23
+    "quantity": 90
   },
   {
     "itemName": "Ceiling Fan",
     "description": "52-inch indoor ceiling fan with light",
     "value": 250.0,
     "category": "2",
-    "quantity": 91
+    "quantity": 0
   },
   {
     "itemName": "Acrylic Paint",
@@ -39,28 +39,28 @@
     "description": "50-piece mechanic tool set",
     "value": 199.99,
     "category": "1",
-    "quantity": 7
+    "quantity": 0
   },
   {
     "itemName": "Screwdriver",
     "description": "Phillips head screwdriver #2",
     "value": 29.5,
     "category": "1",
-    "quantity": 50
+    "quantity": 0
   },
   {
     "itemName": "Step Ladder",
     "description": "6ft aluminum step ladder",
     "value": 199.99,
     "category": "3",
-    "quantity": 7
+    "quantity": 0
   },
   {
     "itemName": "Tape Measure",
     "description": "25ft heavy duty retractable tape",
     "value": 29.5,
     "category": "1",
-    "quantity": 35
+    "quantity": 0
   },
   {
     "itemName": "Kitchen Sink",
@@ -74,48 +74,48 @@
     "description": "50ft outdoor extension cord reel",
     "value": 120.75,
     "category": "2",
-    "quantity": 11
+    "quantity": 0
   },
   {
     "itemName": "Wheelbarrow",
     "description": "Steel tray contractor wheelbarrow",
     "value": 299.99,
     "category": "3",
-    "quantity": 6
+    "quantity": 0
   },
   {
     "itemName": "Garden Hose",
     "description": "100ft flexible garden water hose",
     "value": 89.99,
     "category": "2",
-    "quantity": 13
+    "quantity": 0
   },
   {
     "itemName": "Pliers Set",
     "description": "3-piece slip joint and needle nose pliers",
     "value": 65.25,
     "category": "1",
-    "quantity": 30
+    "quantity": 0
   },
   {
     "itemName": "Generator",
     "description": "Portable gasoline power generator 3500W",
     "value": 750.0,
     "category": "3",
-    "quantity": 3
+    "quantity": 0
   },
   {
     "itemName": "Bathroom Cleaner",
     "description": "Industrial strength tile cleaner (1L)",
     "value": 40.0,
     "category": "2",
-    "quantity": 71
+    "quantity": 0
   },
   {
     "itemName": "Heavy Duty Broom",
     "description": "Outdoor push broom for rough surfaces",
     "value": 134.0,
     "category": "2",
-    "quantity": 9
+    "quantity": 0
   }
 ]
