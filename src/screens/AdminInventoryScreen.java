@@ -1,11 +1,11 @@
 package screens;
 
 import components.AdminNavBarPanel;
-import javax.swing.*;
-import javax.swing.table.*;
 import java.awt.*;
 import java.io.*;
 import java.util.*;
+import javax.swing.*;
+import javax.swing.table.*;
 import main.MainActivity;
 
 public class AdminInventoryScreen extends JPanel {
@@ -41,15 +41,19 @@ public class AdminInventoryScreen extends JPanel {
         mainContainer.setBackground(Color.WHITE);
         mainContainer.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // --- SETUP NAV BAR WITH SEARCH ---
+        // --- SETUP NAV BAR ---
         AdminNavBarPanel navBarPanel = new AdminNavBarPanel("Inventory");
+
+        JPanel topPanel = createTopPanel();
+        JPanel tablePanel = createTablePanel();
+
+        // Set search listener AFTER table is created
         navBarPanel.setSearchListener(text -> {
             this.currentSearchText = text.toLowerCase().trim();
             populateTable();
         });
 
-        JPanel topPanel = createTopPanel();
-        JPanel tablePanel = createTablePanel();
+        navBarPanel.resetSearch();
 
         JPanel contentPanel = new JPanel(new BorderLayout(0, 15));
         contentPanel.setOpaque(false);
@@ -232,7 +236,8 @@ public class AdminInventoryScreen extends JPanel {
     }
 
     private void populateTable() {
-        if (tableModel == null) return;
+        if (tableModel == null) return; // Guard against null tableModel
+        
         tableModel.setRowCount(0);
 
         for (InventoryItem item : inventoryItems) {

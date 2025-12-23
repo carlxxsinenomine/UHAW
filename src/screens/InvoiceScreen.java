@@ -11,6 +11,7 @@ import javax.swing.table.*;
 public class InvoiceScreen extends JPanel {
     private DefaultTableModel tableModel;
     private JTable purchaseTable;
+    private String currentSearchText = "";
 
     /**
      * Constructor that initializes and displays the PurchaseHistoryScreen.
@@ -25,14 +26,23 @@ public class InvoiceScreen extends JPanel {
         mainContainer.setBackground(Color.WHITE);
         mainContainer.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // Navigation bar
-        JPanel navBarPanel = new NavBarPanel("Purchase History");
-
+        // Navigation bar with search listener
+        NavBarPanel navBarPanel = new NavBarPanel("Purchase History");
+        
         // Title and action buttons panel
         JPanel topPanel = createTopPanel();
 
         // Table panel
         JPanel tablePanel = createTablePanel();
+
+        // Set search listener AFTER table is created
+        navBarPanel.setSearchListener(text -> {
+            this.currentSearchText = text.toLowerCase().trim();
+            loadPurchasesFromFolder();
+        });
+        
+        // Reset search to ensure clean state
+        navBarPanel.resetSearch();
 
         // Content panel
         JPanel contentPanel = new JPanel(new BorderLayout(0, 15));
@@ -124,9 +134,11 @@ public class InvoiceScreen extends JPanel {
     }
 
     /**
-     * Loads all purchases from the invoices folder.
+     * Loads all purchases from the invoices folder with search filter.
      */
     private void loadPurchasesFromFolder() {
+        if (tableModel == null) return; // Guard against null tableModel
+        
         tableModel.setRowCount(0);
         File invoicesDir = new File("invoices");
         
@@ -149,13 +161,20 @@ public class InvoiceScreen extends JPanel {
             try {
                 PurchaseData data = parsePurchaseFile(file);
                 if (data != null) {
-                    tableModel.addRow(new Object[]{
-                        data.purchaseId,
-                        data.customerName,
-                        data.itemsCount,
-                        data.date,
-                        String.format("PHP %,.2f", data.totalAmount)
-                    });
+                    // Apply search filter - search by Purchase ID, Customer Name, or Date
+                    if (currentSearchText.isEmpty() || 
+                        data.purchaseId.toLowerCase().contains(currentSearchText) ||
+                        data.customerName.toLowerCase().contains(currentSearchText) ||
+                        data.date.contains(currentSearchText)) {
+                        
+                        tableModel.addRow(new Object[]{
+                            data.purchaseId,
+                            data.customerName,
+                            data.itemsCount,
+                            data.date,
+                            String.format("PHP %,.2f", data.totalAmount)
+                        });
+                    }
                 }
             } catch (Exception e) {
                 System.err.println("Error loading purchase: " + file.getName() + " - " + e.getMessage());

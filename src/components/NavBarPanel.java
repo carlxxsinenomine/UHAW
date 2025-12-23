@@ -10,6 +10,7 @@ import main.MainActivity;
 public class NavBarPanel extends JPanel {
     private String activeScreen;
     private Consumer<String> searchListener; // Listener for search text
+    private JTextField searchField;
 
     public NavBarPanel(String activeScreen) {
         this.activeScreen = activeScreen;
@@ -35,13 +36,32 @@ public class NavBarPanel extends JPanel {
             }
         });
 
-        JTextField searchField = getSearchField();
+        searchField = getSearchField();
 
         rightPanel.add(searchField);
         rightPanel.add(mainMenuButton);
 
         add(leftPanel, BorderLayout.WEST);
         add(rightPanel, BorderLayout.EAST);
+        
+        // Set initial placeholder based on screen
+        updateSearchPlaceholder();
+    }
+
+    /**
+     * Updates the search field placeholder based on the active screen.
+     */
+    private void updateSearchPlaceholder() {
+        String placeholder;
+        if (activeScreen.equals("Purchase History")) {
+            placeholder = "Search (YYYY-MM-DD)";
+        } else {
+            placeholder = "Search";
+        }
+        
+        if (searchField != null && searchField.getForeground() == Color.GRAY) {
+            searchField.setText(placeholder);
+        }
     }
 
     /**
@@ -51,8 +71,23 @@ public class NavBarPanel extends JPanel {
         this.searchListener = listener;
     }
 
+    /**
+     * Resets the search field to its placeholder state.
+     */
+    public void resetSearch() {
+        if (searchField != null) {
+            String placeholder = activeScreen.equals("Purchase History") ? "Search (YYYY-MM-DD)" : "Search";
+            searchField.setText(placeholder);
+            searchField.setForeground(Color.GRAY);
+            // Trigger the listener to clear any filters
+            if (searchListener != null) {
+                searchListener.accept("");
+            }
+        }
+    }
+
     private JTextField getSearchField() {
-        String placeholder = "Search";
+        String placeholder = activeScreen.equals("Purchase History") ? "Search (YYYY-MM-DD)" : "Search";
         JTextField searchField = new JTextField(20);
         searchField.setText(placeholder);
         searchField.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -69,7 +104,8 @@ public class NavBarPanel extends JPanel {
         searchField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent evt) {
-                if (searchField.getText().equals(placeholder)) {
+                String currentPlaceholder = activeScreen.equals("Purchase History") ? "Search (YYYY-MM-DD)" : "Search";
+                if (searchField.getText().equals(currentPlaceholder)) {
                     searchField.setText("");
                     searchField.setForeground(Color.BLACK);
                 }
@@ -77,7 +113,8 @@ public class NavBarPanel extends JPanel {
             @Override
             public void focusLost(FocusEvent evt) {
                 if (searchField.getText().isEmpty()) {
-                    searchField.setText(placeholder);
+                    String currentPlaceholder = activeScreen.equals("Purchase History") ? "Search (YYYY-MM-DD)" : "Search";
+                    searchField.setText(currentPlaceholder);
                     searchField.setForeground(Color.GRAY);
                 }
             }

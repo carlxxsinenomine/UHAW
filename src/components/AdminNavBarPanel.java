@@ -9,10 +9,14 @@ import main.MainActivity;
 
 public class AdminNavBarPanel extends JPanel {
     private String activeScreen;
-    private Consumer<String> searchListener; // Listener for search text
+    private Consumer<String> searchListener;
+    private JTextField searchField;
+    private boolean showSearchBar; // NEW: flag to control search bar visibility
 
-    public AdminNavBarPanel(String activeScreen) {
+    // NEW: Constructor with search bar control
+    public AdminNavBarPanel(String activeScreen, boolean showSearchBar) {
         this.activeScreen = activeScreen;
+        this.showSearchBar = showSearchBar;
         setLayout(new BorderLayout());
         setBackground(new Color(130, 170, 255));
         setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
@@ -24,8 +28,11 @@ public class AdminNavBarPanel extends JPanel {
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         rightPanel.setOpaque(false);
 
-        // --- NEW: Search Field ---
-        JTextField searchField = getSearchField();
+        // Only add search field if showSearchBar is true
+        if (showSearchBar) {
+            searchField = getSearchField();
+            rightPanel.add(searchField);
+        }
 
         // Logout button
         JButton logoutButton = new JButton("Logout");
@@ -41,26 +48,42 @@ public class AdminNavBarPanel extends JPanel {
             }
         });
 
-        // Add Search Field BEFORE Logout button
-        rightPanel.add(searchField);
         rightPanel.add(logoutButton);
 
         add(leftPanel, BorderLayout.WEST);
         add(rightPanel, BorderLayout.EAST);
     }
 
+    // Keep original constructor for backward compatibility (defaults to showing search bar)
+    public AdminNavBarPanel(String activeScreen) {
+        this(activeScreen, true);
+    }
+
     public void setSearchListener(Consumer<String> listener) {
         this.searchListener = listener;
     }
 
+    public void resetSearch() {
+        if (searchField != null) {
+            // Set placeholder based on active screen
+            String placeholder = activeScreen.equals("Invoices") ? "Search (YYYY-MM-DD)" : "Search";
+            searchField.setText(placeholder);
+            searchField.setForeground(Color.GRAY);
+            if (searchListener != null) {
+                searchListener.accept("");
+            }
+        }
+    }
+
     private JTextField getSearchField() {
-        String placeholder = "Search";
+        // Determine placeholder based on active screen
+        String placeholder = activeScreen.equals("Invoices") ? "Search (YYYY-MM-DD)" : "Search";
         JTextField searchField = new JTextField(20);
         searchField.setText(placeholder);
         searchField.setFont(new Font("Arial", Font.PLAIN, 14));
         searchField.setForeground(Color.GRAY);
         searchField.setBackground(Color.WHITE);
-        searchField.setSelectionColor(new Color(184, 207, 229)); // Light blue selection
+        searchField.setSelectionColor(new Color(184, 207, 229));
         searchField.setSelectedTextColor(Color.BLACK);
         searchField.setCaretColor(Color.BLACK);
         searchField.setBorder(BorderFactory.createCompoundBorder(
@@ -71,7 +94,8 @@ public class AdminNavBarPanel extends JPanel {
         searchField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent evt) {
-                if (searchField.getText().equals(placeholder)) {
+                String currentPlaceholder = activeScreen.equals("Invoices") ? "Search (YYYY-MM-DD)" : "Search";
+                if (searchField.getText().equals(currentPlaceholder)) {
                     searchField.setText("");
                     searchField.setForeground(Color.BLACK);
                 }
@@ -79,7 +103,8 @@ public class AdminNavBarPanel extends JPanel {
             @Override
             public void focusLost(FocusEvent evt) {
                 if (searchField.getText().isEmpty()) {
-                    searchField.setText(placeholder);
+                    String currentPlaceholder = activeScreen.equals("Invoices") ? "Search (YYYY-MM-DD)" : "Search";
+                    searchField.setText(currentPlaceholder);
                     searchField.setForeground(Color.GRAY);
                 }
             }

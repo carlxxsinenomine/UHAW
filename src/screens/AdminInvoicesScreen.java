@@ -25,18 +25,23 @@ public class AdminInvoicesScreen extends JPanel {
         mainContainer.setBackground(Color.WHITE);
         mainContainer.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // Navigation bar with search listener
+        // Navigation bar
         AdminNavBarPanel navBarPanel = new AdminNavBarPanel("Invoices");
-        navBarPanel.setSearchListener(text -> {
-            this.currentSearchText = text.toLowerCase().trim();
-            loadInvoicesFromFolder();
-        });
 
         // Title panel
         JPanel topPanel = createTopPanel();
 
         // Table panel
         JPanel tablePanel = createTablePanel();
+
+        // Set search listener AFTER table is created
+        navBarPanel.setSearchListener(text -> {
+            this.currentSearchText = text.toLowerCase().trim();
+            loadInvoicesFromFolder();
+        });
+        
+        // Reset search to ensure clean state
+        navBarPanel.resetSearch();
 
         // Content panel
         JPanel contentPanel = new JPanel(new BorderLayout(0, 15));
@@ -141,6 +146,8 @@ public class AdminInvoicesScreen extends JPanel {
      * Loads all invoices from the invoices folder with search filter.
      */
     private void loadInvoicesFromFolder() {
+        if (tableModel == null) return; // Guard against null tableModel
+        
         tableModel.setRowCount(0);
         File invoicesDir = new File("invoices");
         
@@ -163,10 +170,11 @@ public class AdminInvoicesScreen extends JPanel {
             try {
                 InvoiceData data = parseInvoiceFile(file);
                 if (data != null) {
-                    // Apply search filter
+                    // Apply search filter - search by Invoice ID, Customer Name, or Date
                     if (currentSearchText.isEmpty() || 
                         data.invoiceId.toLowerCase().contains(currentSearchText) ||
-                        data.customerName.toLowerCase().contains(currentSearchText)) {
+                        data.customerName.toLowerCase().contains(currentSearchText) ||
+                        data.date.contains(currentSearchText)) {
                         
                         tableModel.addRow(new Object[]{
                             data.invoiceId,

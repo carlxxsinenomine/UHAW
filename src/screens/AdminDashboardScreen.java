@@ -36,8 +36,8 @@ public class AdminDashboardScreen extends JPanel {
         mainContainer.setBackground(BG_COLOR);
         mainContainer.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // 1. Navigation Bar
-        AdminNavBarPanel navBarPanel = new AdminNavBarPanel("Dashboard");
+        // 1. Navigation Bar - PASS false to hide search bar
+        AdminNavBarPanel navBarPanel = new AdminNavBarPanel("Dashboard", false);
 
         // 2. Main Content Wrapper
         JPanel contentPanel = new JPanel();
