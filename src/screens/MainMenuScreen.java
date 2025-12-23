@@ -1,9 +1,9 @@
 package screens;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.*;
 import main.MainActivity;
 
 public class MainMenuScreen extends JPanel {
@@ -16,11 +16,11 @@ public class MainMenuScreen extends JPanel {
         setLayout(new GridLayout(1, 2)); // Split 50/50
 
 
-        // LEFT PANEL (Scrollable Info / About Side)
-        JPanel leftContentPanel = new JPanel();
-        leftContentPanel.setLayout(new BoxLayout(leftContentPanel, BoxLayout.Y_AXIS));
-        leftContentPanel.setBackground(PRIMARY_BLUE);
-        leftContentPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+        // LEFT PANEL (Info / About Side)
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        leftPanel.setBackground(PRIMARY_BLUE);
+        leftPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
         //Add Content Elements
         JTextArea titleLabel = createTextComponent(
@@ -44,28 +44,13 @@ public class MainMenuScreen extends JPanel {
         );
         descLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
-        leftContentPanel.add(Box.createVerticalGlue()); // Push content to center
-        leftContentPanel.add(titleLabel);
-        leftContentPanel.add(Box.createVerticalStrut(10));
-        leftContentPanel.add(subTitleLabel);
-        leftContentPanel.add(Box.createVerticalStrut(20));
-        leftContentPanel.add(descLabel);
-        leftContentPanel.add(Box.createVerticalGlue());
-
-        JScrollPane leftScrollPane = new JScrollPane(leftContentPanel);
-        leftScrollPane.setBorder(null); // Remove border
-        leftScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        leftScrollPane.getVerticalScrollBar().setUnitIncrement(16); // Smooth scrolling
-
-        // Custom styling for scrollbar to blend in
-        leftScrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0));
-        leftScrollPane.getVerticalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
-            @Override
-            protected void configureScrollBarColors() {
-                this.thumbColor = new Color(255, 255, 255, 100);
-                this.trackColor = PRIMARY_BLUE;
-            }
-        });
+        leftPanel.add(Box.createVerticalGlue()); // Push content to center
+        leftPanel.add(titleLabel);
+        leftPanel.add(Box.createVerticalStrut(10));
+        leftPanel.add(subTitleLabel);
+        leftPanel.add(Box.createVerticalStrut(20));
+        leftPanel.add(descLabel);
+        leftPanel.add(Box.createVerticalGlue());
 
         // RIGHT PANEL (Navigation Buttons)
         JPanel rightPanel = new JPanel();
@@ -109,7 +94,7 @@ public class MainMenuScreen extends JPanel {
         rightPanel.add(menuContainer);
 
         // Add split panels to main layout
-        add(leftScrollPane);
+        add(leftPanel);
         add(rightPanel);
     }
 

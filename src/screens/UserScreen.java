@@ -309,6 +309,7 @@ public class UserScreen extends JPanel {
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setOpaque(false);
         scrollPane.setPreferredSize(new Dimension(scrollPane.getPreferredSize().width, 350));
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
         JPanel content = new JPanel(new BorderLayout());
         content.setOpaque(false);
@@ -359,6 +360,12 @@ public class UserScreen extends JPanel {
     }
 
     private void refreshTableRows() {
+        // Save current quantities before clearing
+        Map<String, Integer> savedQuantities = new HashMap<>();
+        for (ItemRowData row : itemRows) {
+            savedQuantities.put(row.itemName, (Integer) row.spinner.getValue());
+        }
+        
         // Clear old components and references
         itemsPanel.removeAll();
         itemRows.clear();
@@ -380,7 +387,9 @@ public class UserScreen extends JPanel {
                                  itemName.toLowerCase().contains(currentSearchText);
 
             if (matchCat && matchSearch) {
-                itemsPanel.add(createItemRow(item));
+                // Get saved quantity for this item (default to 0)
+                Integer savedQty = savedQuantities.getOrDefault(itemName, 0);
+                itemsPanel.add(createItemRow(item, savedQty));
                 visibleItems++;
             }
         }
@@ -405,6 +414,10 @@ public class UserScreen extends JPanel {
     }
 
     private JPanel createItemRow(InventoryItem item) {
+        return createItemRow(item, 0); // Default quantity is 0
+    }
+
+    private JPanel createItemRow(InventoryItem item, int initialQuantity) {
         JPanel row = new JPanel(new GridLayout(1, 4, 5, 0));
         row.setOpaque(false);
         row.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
@@ -416,7 +429,9 @@ public class UserScreen extends JPanel {
 
         JComponent qtyComp;
         if (item.quantity > 0) {
-            JSpinner spinner = new JSpinner(new SpinnerNumberModel(0, 0, item.quantity, 1));
+            // Ensure initial quantity doesn't exceed available stock
+            int qty = Math.min(initialQuantity, item.quantity);
+            JSpinner spinner = new JSpinner(new SpinnerNumberModel(qty, 0, item.quantity, 1));
             spinner.setFont(new Font("Arial", Font.PLAIN, 13));
             JComponent editor = spinner.getEditor();
             if (editor instanceof JSpinner.DefaultEditor) {
@@ -425,6 +440,9 @@ public class UserScreen extends JPanel {
 
             // Store row data efficiently
             itemRows.add(new ItemRowData(item.name, spinner, totalLbl));
+            
+            // Update total label with initial quantity
+            updateTotalFromLabel(spinner, item.price, totalLbl);
             
             spinner.addChangeListener(e -> {
                 updateTotalFromLabel(spinner, item.price, totalLbl);
@@ -475,17 +493,21 @@ public class UserScreen extends JPanel {
         JButton checkoutButton = createActionButton("Checkout", new Color(34, 139, 34));
         checkoutButton.addActionListener(e -> generateInvoice());
 
-        // NEW: Add a Clear Search button
-        JButton clearSearchButton = createActionButton("Clear Search", new Color(100, 100, 100));
-        clearSearchButton.addActionListener(e -> {
-            currentSearchText = "";
-            if (navBarPanel != null) {
-                navBarPanel.resetSearch(); // FIXED: Changed from clearSearchField() to resetSearch()
+        // Clear Cart button - resets all quantities to 0
+        JButton clearCartButton = createActionButton("Clear Cart", new Color(220, 53, 69));
+        clearCartButton.addActionListener(e -> {
+            // Reset all spinner values to 0
+            for (ItemRowData row : itemRows) {
+                row.spinner.setValue(0);
             }
-            refreshTableRows();
+            updateOverallTotals();
+            JOptionPane.showMessageDialog(this, 
+                "Cart cleared successfully!", 
+                "Cart Cleared", 
+                JOptionPane.INFORMATION_MESSAGE);
         });
 
-        buttons.add(clearSearchButton);
+        buttons.add(clearCartButton);
         buttons.add(checkoutButton);
 
         bottomPanel.add(totals, BorderLayout.WEST);

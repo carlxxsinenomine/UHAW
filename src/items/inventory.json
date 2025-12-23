@@ -18,13 +18,13 @@
     "description": "52-inch indoor ceiling fan with light",
     "value": 250.0,
     "category": "2",
-    "quantity": 93
+    "quantity": 91
   },
   {
     "itemName": "Acrylic Paint",
     "description": "Premium white interior paint (1 Gallon)",
     "value": 45.99,
-    "category": "2",
+    "category": "3",
     "quantity": 0
   },
   {
@@ -74,7 +74,7 @@
     "description": "50ft outdoor extension cord reel",
     "value": 120.75,
     "category": "2",
-    "quantity": 14
+    "quantity": 11
   },
   {
     "itemName": "Wheelbarrow",
@@ -109,7 +109,7 @@
     "description": "Industrial strength tile cleaner (1L)",
     "value": 40.0,
     "category": "2",
-    "quantity": 73
+    "quantity": 71
   },
   {
     "itemName": "Heavy Duty Broom",
