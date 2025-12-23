@@ -12,30 +12,21 @@ public class AdminInvoicesScreen extends JPanel {
     private DefaultTableModel tableModel;
     private JTable invoiceTable;
     private String currentSearchText = "";
-    private AdminNavBarPanel navBarPanel; // Store reference to nav bar
+    private AdminNavBarPanel navBarPanel;
 
-    /**
-     * Constructor that initializes and displays the AdminInvoicesScreen.
-     */
     public AdminInvoicesScreen() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        // Main container
         JPanel mainContainer = new JPanel(new BorderLayout());
         mainContainer.setBackground(Color.WHITE);
         mainContainer.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // Navigation bar
         navBarPanel = new AdminNavBarPanel("Invoices");
 
-        // Title panel
         JPanel topPanel = createTopPanel();
-
-        // Table panel
         JPanel tablePanel = createTablePanel();
 
-        // Set search listener AFTER table is created
         navBarPanel.setSearchListener(text -> {
             String searchText = text.trim();
             
@@ -44,12 +35,12 @@ public class AdminInvoicesScreen extends JPanel {
                 searchText.equals("Search (YYYY-MM-DD)")) {
                 this.currentSearchText = "";
             } else {
-                this.currentSearchText = searchText.toLowerCase();
+                // Convert to uppercase and validate format
+                this.currentSearchText = searchText.toUpperCase();
             }
             loadInvoicesFromFolder();
         });
 
-        // Content panel
         JPanel contentPanel = new JPanel(new BorderLayout(0, 15));
         contentPanel.setOpaque(false);
         contentPanel.add(topPanel, BorderLayout.NORTH);
@@ -60,7 +51,6 @@ public class AdminInvoicesScreen extends JPanel {
 
         add(mainContainer);
         
-        // Add component listener to detect when screen becomes visible
         addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
             public void componentShown(java.awt.event.ComponentEvent evt) {
@@ -69,9 +59,6 @@ public class AdminInvoicesScreen extends JPanel {
         });
     }
 
-    /**
-     * Resets the search when screen becomes visible
-     */
     private void resetSearch() {
         if (navBarPanel != null) {
             navBarPanel.resetSearch();
@@ -80,9 +67,6 @@ public class AdminInvoicesScreen extends JPanel {
         loadInvoicesFromFolder();
     }
 
-    /**
-     * Creates the top panel with title.
-     */
     private JPanel createTopPanel() {
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
@@ -96,9 +80,6 @@ public class AdminInvoicesScreen extends JPanel {
         return topPanel;
     }
 
-    /**
-     * Creates the table panel displaying all invoices.
-     */
     private JPanel createTablePanel() {
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setOpaque(false);
@@ -112,7 +93,6 @@ public class AdminInvoicesScreen extends JPanel {
             }
         };
 
-        // Load actual invoice data from files
         loadInvoicesFromFolder();
 
         invoiceTable = new JTable(tableModel);
@@ -123,7 +103,6 @@ public class AdminInvoicesScreen extends JPanel {
         invoiceTable.getTableHeader().setBackground(new Color(200, 200, 200));
         invoiceTable.getTableHeader().setReorderingAllowed(false);
         
-        // Set cell renderer for left alignment
         DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
         leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
         
@@ -134,7 +113,6 @@ public class AdminInvoicesScreen extends JPanel {
         JScrollPane scrollPane = new JScrollPane(invoiceTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
 
-        // Add action buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         buttonPanel.setOpaque(false);
 
@@ -175,15 +153,11 @@ public class AdminInvoicesScreen extends JPanel {
         return tablePanel;
     }
 
-    /**
-     * Loads all invoices from the invoices folder with search filter.
-     */
     private void loadInvoicesFromFolder() {
-        if (tableModel == null) return; // Guard against null tableModel
+        if (tableModel == null) return;
         
         tableModel.setRowCount(0);
         
-        // Try multiple invoice directory locations
         File[] possibleDirs = {
             new File("src/main/invoices"),
             new File("src/invoices"),
@@ -215,15 +189,18 @@ public class AdminInvoicesScreen extends JPanel {
             try {
                 InvoiceData data = parseInvoiceFile(file);
                 if (data != null && !data.invoiceId.isEmpty()) {
-                    // Apply strict date-only search filter
+                    // Convert invoice date to YYYY-MM-DD format
+                    String normalizedDate = convertToYYYYMMDD(data.date);
+                    
+                    // Apply search filter
                     boolean matchesSearch = currentSearchText.isEmpty();
-                    if (!matchesSearch) {
-                        // Validate that search text follows YYYY-MM-DD format (strict)
-                        if (isValidDateFormat(currentSearchText)) {
-                            // Only search in the date field
-                            matchesSearch = data.date.toLowerCase().contains(currentSearchText);
+                    if (!matchesSearch && !currentSearchText.isEmpty()) {
+                        // Check if search text is valid YYYY-MM-DD format
+                        if (isValidYYYYMMDDFormat(currentSearchText)) {
+                            // Apply strict filtering based on search pattern
+                            matchesSearch = matchesStrictDatePattern(normalizedDate, currentSearchText);
                         } else {
-                            // Invalid format - filter out everything
+                            // Invalid format - show nothing
                             matchesSearch = false;
                         }
                     }
@@ -232,8 +209,8 @@ public class AdminInvoicesScreen extends JPanel {
                         tableModel.addRow(new Object[]{
                             data.invoiceId,
                             data.customerName,
-                            String.valueOf(data.itemsCount), // Plain string for left alignment
-                            data.date,
+                            String.valueOf(data.itemsCount),
+                            data.date, // Keep original display format
                             String.format("PHP %,.2f", data.totalAmount)
                         });
                     }
@@ -245,8 +222,187 @@ public class AdminInvoicesScreen extends JPanel {
     }
 
     /**
-     * Parses an invoice file and extracts relevant data.
+     * Converts date to YYYY-MM-DD format for comparison
      */
+    private String convertToYYYYMMDD(String dateStr) {
+        if (dateStr == null || dateStr.isEmpty()) {
+            return "";
+        }
+        
+        try {
+            // First, try to parse as YYYY-MM-DD directly
+            if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                return dateStr;
+            }
+            
+            // Try common date formats
+            SimpleDateFormat[] inputFormats = {
+                new SimpleDateFormat("dd MMMM yyyy", Locale.ENGLISH),
+                new SimpleDateFormat("MMMM dd, yyyy", Locale.ENGLISH),
+                new SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH),
+                new SimpleDateFormat("dd/MM/yyyy"),
+                new SimpleDateFormat("MM/dd/yyyy"),
+                new SimpleDateFormat("dd-MM-yyyy")
+            };
+            
+            for (SimpleDateFormat sdf : inputFormats) {
+                try {
+                    Date date = sdf.parse(dateStr);
+                    SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    return outputFormat.format(date);
+                } catch (Exception e) {
+                    // Try next format
+                }
+            }
+            
+            // If parsing fails, try to extract YYYY-MM-DD pattern
+            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\d{4}-\\d{2}-\\d{2}").matcher(dateStr);
+            if (matcher.find()) {
+                return matcher.group();
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Error converting date: " + dateStr + " - " + e.getMessage());
+        }
+        
+        return "";
+    }
+
+    /**
+     * Checks if search text is valid YYYY-MM-DD format
+     * Accepts patterns like: Y, YY, YYY, YYYY, YYYY-M, YYYY-MM, YYYY-MM-D
+     * But must follow the dash-separated pattern
+     */
+    private boolean isValidYYYYMMDDFormat(String searchText) {
+        if (searchText == null || searchText.isEmpty()) {
+            return false;
+        }
+        
+        // Must contain only digits and dashes
+        if (!searchText.matches("[\\d-]+")) {
+            return false;
+        }
+        
+        // Must start with a digit (year)
+        if (!Character.isDigit(searchText.charAt(0))) {
+            return false;
+        }
+        
+        // Count dashes
+        int dashCount = 0;
+        for (char c : searchText.toCharArray()) {
+            if (c == '-') dashCount++;
+        }
+        
+        // Validate based on number of dashes
+        if (dashCount == 0) {
+            // Only year: Y, YY, YYY, or YYYY
+            return searchText.matches("\\d{1,4}");
+        } else if (dashCount == 1) {
+            // Year-Month or Year-Month- (partial day)
+            String[] parts = searchText.split("-");
+            if (parts.length != 2) return false;
+            if (!parts[0].matches("\\d{1,4}")) return false;
+            
+            // Month part can be empty, 1 digit, or 2 digits
+            return parts[1].isEmpty() || parts[1].matches("\\d{1,2}");
+        } else if (dashCount == 2) {
+            // Year-Month-Day or partial
+            String[] parts = searchText.split("-");
+            if (parts.length != 3) return false;
+            if (!parts[0].matches("\\d{1,4}")) return false;
+            if (!parts[1].matches("\\d{1,2}")) return false;
+            
+            // Day part can be empty, 1 digit, or 2 digits
+            return parts[2].isEmpty() || parts[2].matches("\\d{1,2}");
+        }
+        
+        return false;
+    }
+
+    /**
+     * Strict date pattern matching for YYYY-MM-DD format
+     */
+    private boolean matchesStrictDatePattern(String normalizedDate, String searchPattern) {
+        if (normalizedDate == null || normalizedDate.isEmpty() || 
+            searchPattern == null || searchPattern.isEmpty()) {
+            return false;
+        }
+        
+        // Ensure normalizedDate is in YYYY-MM-DD format
+        if (!normalizedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            return false;
+        }
+        
+        // Split both dates
+        String[] dateParts = normalizedDate.split("-");
+        String[] searchParts = searchPattern.split("-");
+        
+        // Year matching
+        if (searchParts.length >= 1 && !searchParts[0].isEmpty()) {
+            String yearPattern = searchParts[0];
+            String invoiceYear = dateParts[0];
+            
+            // Match year pattern (supports partial years)
+            if (yearPattern.length() > invoiceYear.length()) {
+                return false;
+            }
+            if (!invoiceYear.startsWith(yearPattern)) {
+                return false;
+            }
+        }
+        
+        // Month matching (only if month part exists in search)
+        if (searchParts.length >= 2 && !searchParts[1].isEmpty()) {
+            if (dateParts.length < 2) return false;
+            
+            String monthPattern = searchParts[1];
+            String invoiceMonth = dateParts[1];
+            
+            // Pad single digit months with leading zero
+            if (monthPattern.length() == 1) {
+                monthPattern = "0" + monthPattern;
+            }
+            if (invoiceMonth.length() == 1) {
+                invoiceMonth = "0" + invoiceMonth;
+            }
+            
+            // Match month pattern
+            if (monthPattern.length() > invoiceMonth.length()) {
+                return false;
+            }
+            if (!invoiceMonth.startsWith(monthPattern)) {
+                return false;
+            }
+        }
+        
+        // Day matching (only if day part exists in search)
+        if (searchParts.length >= 3 && !searchParts[2].isEmpty()) {
+            if (dateParts.length < 3) return false;
+            
+            String dayPattern = searchParts[2];
+            String invoiceDay = dateParts[2];
+            
+            // Pad single digit days with leading zero
+            if (dayPattern.length() == 1) {
+                dayPattern = "0" + dayPattern;
+            }
+            if (invoiceDay.length() == 1) {
+                invoiceDay = "0" + invoiceDay;
+            }
+            
+            // Match day pattern
+            if (dayPattern.length() > invoiceDay.length()) {
+                return false;
+            }
+            if (!invoiceDay.startsWith(dayPattern)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
     private InvoiceData parseInvoiceFile(File file) {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             InvoiceData data = new InvoiceData();
@@ -257,7 +413,6 @@ public class AdminInvoicesScreen extends JPanel {
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
                 
-                // Find invoice ID
                 if (data.invoiceId.isEmpty()) {
                     if (line.startsWith("Invoice Number:")) {
                         String[] parts = line.split("Invoice Number:");
@@ -267,7 +422,6 @@ public class AdminInvoicesScreen extends JPanel {
                     }
                 }
                 
-                // Find customer name
                 if (data.customerName.equals("Unknown")) {
                     if (line.contains("BILL TO:")) {
                         String nameLine = reader.readLine();
@@ -277,7 +431,6 @@ public class AdminInvoicesScreen extends JPanel {
                                 String[] parts = nameLine.split("Name:");
                                 if (parts.length > 1) {
                                     data.customerName = parts[1].trim();
-                                    // Remove trailing comma if present
                                     if (data.customerName.endsWith(",")) {
                                         data.customerName = data.customerName.substring(0, data.customerName.length() - 1);
                                     }
@@ -287,7 +440,6 @@ public class AdminInvoicesScreen extends JPanel {
                     }
                 }
                 
-                // Find date
                 if (line.startsWith("Date:")) {
                     String[] parts = line.split("Date:");
                     if (parts.length > 1) {
@@ -295,21 +447,17 @@ public class AdminInvoicesScreen extends JPanel {
                     }
                 }
                 
-                // Find items section
                 if (line.contains("DESCRIPTION") && line.contains("QTY") && 
                     line.contains("UNIT PRICE") && line.contains("AMOUNT")) {
                     inItemsSection = true;
                     continue;
                 }
                 
-                // Count items in the items section
                 if (inItemsSection) {
                     if (line.contains("---") || line.startsWith("TOTAL")) {
                         inItemsSection = false;
                     } 
-                    // Count non-empty lines that look like item rows
                     else if (!line.isEmpty()) {
-                        // Item rows have: item name, quantity, "PHP X.XX", "PHP X.XX"
                         if (line.contains("PHP") && line.split("\\s+").length >= 4) {
                             String[] parts = line.split("\\s+");
                             if (parts.length >= 2) {
@@ -319,7 +467,6 @@ public class AdminInvoicesScreen extends JPanel {
                                         itemsCount++;
                                     }
                                 } catch (NumberFormatException e) {
-                                    // Look for a number somewhere in the line
                                     for (int i = 1; i < parts.length; i++) {
                                         try {
                                             int qty = Integer.parseInt(parts[i]);
@@ -337,7 +484,6 @@ public class AdminInvoicesScreen extends JPanel {
                     }
                 }
                 
-                // Find total amount
                 if (line.contains("TOTAL AMOUNT DUE:")) {
                     String amountStr = line.replace("TOTAL AMOUNT DUE:", "")
                                           .replace("PHP", "")
@@ -351,18 +497,15 @@ public class AdminInvoicesScreen extends JPanel {
                 }
             }
             
-            // If we didn't find items with the above logic, use a simpler count
             if (itemsCount == 0) {
                 itemsCount = countItemsSimple(file);
             }
             
-            // If no date found, use file date
             if (data.date == null || data.date.isEmpty()) {
                 SimpleDateFormat sdf = new SimpleDateFormat("dd MMMM yyyy");
                 data.date = sdf.format(new Date(file.lastModified()));
             }
             
-            // If no invoice ID found, use filename
             if (data.invoiceId.isEmpty()) {
                 String fileName = file.getName();
                 if (fileName.toLowerCase().endsWith(".txt")) {
@@ -372,12 +515,10 @@ public class AdminInvoicesScreen extends JPanel {
                 }
             }
             
-            // Clean up customer name
             if (data.customerName.endsWith(",")) {
                 data.customerName = data.customerName.substring(0, data.customerName.length() - 1);
             }
             
-            // Set items count
             data.itemsCount = itemsCount;
             
             return data;
@@ -388,9 +529,6 @@ public class AdminInvoicesScreen extends JPanel {
         }
     }
     
-    /**
-     * Simple item counting method
-     */
     private int countItemsSimple(File file) {
         int count = 0;
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -423,9 +561,6 @@ public class AdminInvoicesScreen extends JPanel {
         return Math.max(count, 0);
     }
 
-    /**
-     * Refreshes the invoice list.
-     */
     private void refreshInvoices() {
         loadInvoicesFromFolder();
         JOptionPane.showMessageDialog(this, 
@@ -434,9 +569,6 @@ public class AdminInvoicesScreen extends JPanel {
             JOptionPane.INFORMATION_MESSAGE);
     }
 
-    /**
-     * Views the selected invoice file.
-     */
     private void viewSelectedInvoice() {
         int selectedRow = invoiceTable.getSelectedRow();
         if (selectedRow == -1) {
@@ -447,11 +579,9 @@ public class AdminInvoicesScreen extends JPanel {
             return;
         }
         
-        // Convert view row index to model row index (for sorting)
         int modelRow = invoiceTable.convertRowIndexToModel(selectedRow);
         String invoiceId = (String) tableModel.getValueAt(modelRow, 0);
         
-        // Try multiple locations for the invoice file
         File invoiceFile = null;
         String[] possiblePaths = {
             "src/main/invoices/" + invoiceId + ".txt",
@@ -507,9 +637,6 @@ public class AdminInvoicesScreen extends JPanel {
         }
     }
 
-    /**
-     * Deletes the selected invoice file.
-     */
     private void deleteSelectedInvoice() {
         int selectedRow = invoiceTable.getSelectedRow();
         if (selectedRow == -1) {
@@ -520,7 +647,6 @@ public class AdminInvoicesScreen extends JPanel {
             return;
         }
         
-        // Convert view row index to model row index (for sorting)
         int modelRow = invoiceTable.convertRowIndexToModel(selectedRow);
         String invoiceId = (String) tableModel.getValueAt(modelRow, 0);
         
@@ -534,7 +660,6 @@ public class AdminInvoicesScreen extends JPanel {
             return;
         }
         
-        // Try multiple locations for the invoice file
         File invoiceFile = null;
         String[] possiblePaths = {
             "src/main/invoices/" + invoiceId + ".txt",
@@ -579,46 +704,6 @@ public class AdminInvoicesScreen extends JPanel {
         }
     }
 
-    /**
-     * Validates if the search text follows the strict YYYY-MM-DD format.
-     * Allows partial dates like "2025", "2025-12", or "2025-12-23"
-     * but rejects incorrect formats like "12-23-2025" or "23-12-2025"
-     */
-    private boolean isValidDateFormat(String searchText) {
-        if (searchText == null || searchText.isEmpty()) {
-            return false;
-        }
-        
-        // Pattern: YYYY or YYYY-MM or YYYY-MM-DD
-        // Year must be 4 digits, month and day must be 2 digits
-        // Must start with a digit (year)
-        if (!Character.isDigit(searchText.charAt(0))) {
-            return false;
-        }
-        
-        String[] parts = searchText.split("-");
-        
-        // Check each part
-        if (parts.length == 1) {
-            // Only year: must be 1-4 digits
-            return parts[0].matches("\\d{1,4}");
-        } else if (parts.length == 2) {
-            // Year-Month: year must be 1-4 digits, month must be 1-2 digits
-            return parts[0].matches("\\d{1,4}") && parts[1].matches("\\d{1,2}");
-        } else if (parts.length == 3) {
-            // Year-Month-Day: year must be 1-4 digits, month and day must be 1-2 digits
-            return parts[0].matches("\\d{1,4}") && 
-                   parts[1].matches("\\d{1,2}") && 
-                   parts[2].matches("\\d{1,2}");
-        }
-        
-        // More than 3 parts or invalid format
-        return false;
-    }
-
-    /**
-     * Inner class to store invoice data.
-     */
     private static class InvoiceData {
         String invoiceId = "";
         String customerName = "Unknown";
