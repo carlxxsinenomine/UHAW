@@ -70,7 +70,7 @@ public class InvoiceScreen extends JPanel {
         tablePanel.setOpaque(false);
         tablePanel.setBorder(BorderFactory.createEmptyBorder(0, 40, 30, 40));
 
-        String[] columnNames = {"Purchase ID", "Customer Name", "Items Count", "Date", "Total Amount", "Status"};
+        String[] columnNames = {"Purchase ID", "Customer Name", "Items Count", "Date", "Total Amount"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -88,33 +88,6 @@ public class InvoiceScreen extends JPanel {
         purchaseTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
         purchaseTable.getTableHeader().setBackground(new Color(200, 200, 200));
         purchaseTable.getTableHeader().setReorderingAllowed(false);
-
-        // Color code status column
-        purchaseTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value,
-                                                           boolean isSelected, boolean hasFocus, int row, int column) {
-                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
-                if (column == 5 && value != null) { // Status column
-                    if (value.equals("Completed")) {
-                        c.setForeground(new Color(0, 150, 0));
-                    } else if (value.equals("Pending")) {
-                        c.setForeground(new Color(255, 140, 0));
-                    } else {
-                        c.setForeground(Color.BLACK);
-                    }
-                } else {
-                    c.setForeground(Color.BLACK);
-                }
-
-                if (!isSelected) {
-                    c.setBackground(Color.WHITE);
-                }
-
-                return c;
-            }
-        });
 
         JScrollPane scrollPane = new JScrollPane(purchaseTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
@@ -181,8 +154,7 @@ public class InvoiceScreen extends JPanel {
                         data.customerName,
                         data.itemsCount,
                         data.date,
-                        String.format("PHP %,.2f", data.totalAmount),
-                        "Completed"
+                        String.format("PHP %,.2f", data.totalAmount)
                     });
                 }
             } catch (Exception e) {
