@@ -25,7 +25,7 @@
     "description": "Premium white interior paint (1 Gallon)",
     "value": 45.99,
     "category": "3",
-    "quantity": 1000
+    "quantity": 996
   },
   {
     "itemName": "Chainsaw",
@@ -109,7 +109,7 @@
     "description": "Industrial strength tile cleaner (1L)",
     "value": 40.0,
     "category": "2",
-    "quantity": 1000
+    "quantity": 998
   },
   {
     "itemName": "Heavy Duty Broom",

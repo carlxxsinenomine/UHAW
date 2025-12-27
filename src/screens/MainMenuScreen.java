@@ -5,12 +5,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
 import main.MainActivity;
+import main.AppConstants;
 
 public class MainMenuScreen extends JPanel {
-
-    // Brand Colors
-    private static final Color PRIMARY_BLUE = new Color(130, 170, 255);
-    private static final Color TEXT_DARK = new Color(50, 50, 50);
 
     public MainMenuScreen() {
         setLayout(new GridLayout(1, 2)); // Split 50/50
@@ -19,28 +16,28 @@ public class MainMenuScreen extends JPanel {
         // LEFT PANEL (Info / About Side)
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        leftPanel.setBackground(PRIMARY_BLUE);
+        leftPanel.setBackground(AppConstants.PRIMARY_BLUE);
         leftPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
         //Add Content Elements
         JTextArea titleLabel = createTextComponent(
                 "UHAW: Unified Hardware for Automated Wholesale/Retail",
-                new Font("Arial", Font.BOLD, 42)
+                AppConstants.FONT_TITLE_LARGE
         );
 
         // Subtitle: POS System
         JTextArea subTitleLabel = createTextComponent(
                 "A point-of-sale (POS) system",
-                new Font("Arial", Font.ITALIC, 24)
+                AppConstants.FONT_SUBTITLE
         );
-        subTitleLabel.setForeground(new Color(230, 240, 255)); // Lighter blue/white
+        subTitleLabel.setForeground(AppConstants.TEXT_LIGHT); // Lighter blue/white
 
         // Description
         String descText = "– A hardware-software solution that processes sales " +
                 "transactions, and generates sales invoice – supporting retail operations.";
         JTextArea descLabel = createTextComponent(
                 descText,
-                new Font("Arial", Font.PLAIN, 18)
+                AppConstants.FONT_BODY_LARGE
         );
         descLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
@@ -62,8 +59,8 @@ public class MainMenuScreen extends JPanel {
         menuContainer.setBackground(Color.WHITE);
 
         JLabel menuTitle = new JLabel("Main Menu");
-        menuTitle.setFont(new Font("Arial", Font.BOLD, 24));
-        menuTitle.setForeground(TEXT_DARK);
+        menuTitle.setFont(AppConstants.FONT_TITLE_LARGE_REGULAR);
+        menuTitle.setForeground(AppConstants.TEXT_DARK);
         menuTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
         menuTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
 
@@ -129,7 +126,7 @@ public class MainMenuScreen extends JPanel {
 
         JLabel titleLbl = new JLabel(title);
         titleLbl.setFont(new Font("Arial", Font.BOLD, 16));
-        titleLbl.setForeground(TEXT_DARK);
+        titleLbl.setForeground(AppConstants.TEXT_DARK);
         titleLbl.setBorder(BorderFactory.createEmptyBorder(10, 20, 0, 0));
 
         JLabel subLbl = new JLabel(subtitle);
@@ -155,8 +152,8 @@ public class MainMenuScreen extends JPanel {
             @Override
             public void mouseEntered(MouseEvent e) {
                 button.setBackground(new Color(245, 248, 255));
-                button.setBorder(BorderFactory.createLineBorder(PRIMARY_BLUE, 1));
-                arrowLbl.setForeground(PRIMARY_BLUE);
+                button.setBorder(BorderFactory.createLineBorder(AppConstants.PRIMARY_BLUE, 1));
+                arrowLbl.setForeground(AppConstants.PRIMARY_BLUE);
             }
 
             @Override

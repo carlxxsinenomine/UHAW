@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.table.*;
+import main.AppConstants;
 
 public class AdminInvoicesScreen extends JPanel {
     private DefaultTableModel tableModel;
@@ -73,7 +74,7 @@ public class AdminInvoicesScreen extends JPanel {
         topPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 15, 20));
 
         JLabel titleLabel = new JLabel("All Invoices");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setFont(AppConstants.FONT_TITLE_XL);
 
         topPanel.add(titleLabel, BorderLayout.WEST);
 
@@ -96,11 +97,11 @@ public class AdminInvoicesScreen extends JPanel {
         loadInvoicesFromFolder();
 
         invoiceTable = new JTable(tableModel);
-        invoiceTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        invoiceTable.setFont(AppConstants.FONT_BODY_REGULAR);
         invoiceTable.setRowHeight(40);
         invoiceTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        invoiceTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
-        invoiceTable.getTableHeader().setBackground(new Color(200, 200, 200));
+        invoiceTable.getTableHeader().setFont(AppConstants.FONT_LABEL_BOLD);
+        invoiceTable.getTableHeader().setBackground(AppConstants.BG_MEDIUM_GRAY);
         invoiceTable.getTableHeader().setReorderingAllowed(false);
         
         DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
@@ -111,14 +112,14 @@ public class AdminInvoicesScreen extends JPanel {
         }
 
         JScrollPane scrollPane = new JScrollPane(invoiceTable);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppConstants.BORDER_LIGHT_GRAY, 1));
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         buttonPanel.setOpaque(false);
 
         JButton refreshButton = new JButton("Refresh");
-        refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
-        refreshButton.setBackground(new Color(130, 170, 255));
+        refreshButton.setFont(AppConstants.FONT_LABEL_BOLD);
+        refreshButton.setBackground(AppConstants.PRIMARY_BLUE);
         refreshButton.setForeground(Color.WHITE);
         refreshButton.setFocusPainted(false);
         refreshButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
@@ -126,8 +127,8 @@ public class AdminInvoicesScreen extends JPanel {
         refreshButton.addActionListener(e -> refreshInvoices());
 
         JButton viewButton = new JButton("View Invoice");
-        viewButton.setFont(new Font("Arial", Font.BOLD, 14));
-        viewButton.setBackground(new Color(34, 139, 34));
+        viewButton.setFont(AppConstants.FONT_LABEL_BOLD);
+        viewButton.setBackground(AppConstants.ACCENT_GREEN);
         viewButton.setForeground(Color.WHITE);
         viewButton.setFocusPainted(false);
         viewButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
@@ -135,8 +136,8 @@ public class AdminInvoicesScreen extends JPanel {
         viewButton.addActionListener(e -> viewSelectedInvoice());
 
         JButton deleteButton = new JButton("Delete Invoice");
-        deleteButton.setFont(new Font("Arial", Font.BOLD, 14));
-        deleteButton.setBackground(new Color(220, 50, 50));
+        deleteButton.setFont(AppConstants.FONT_LABEL_BOLD);
+        deleteButton.setBackground(AppConstants.ACCENT_RED);
         deleteButton.setForeground(Color.WHITE);
         deleteButton.setFocusPainted(false);
         deleteButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));

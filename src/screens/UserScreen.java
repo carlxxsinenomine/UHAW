@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.swing.*;
 import main.MainActivity;
+import main.AppConstants;
 
 /**
  * UserScreen class with Search enabled and Top-Bar Layout.
@@ -103,7 +104,7 @@ public class UserScreen extends JPanel {
         titlePanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 15, 0));
 
         JLabel titleLabel = new JLabel("Create Purchase");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setFont(AppConstants.FONT_TITLE_XL);
         titleLabel.setForeground(Color.BLACK);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         titlePanel.add(titleLabel, BorderLayout.CENTER);
@@ -228,7 +229,7 @@ public class UserScreen extends JPanel {
         JPanel p1 = new JPanel(new BorderLayout(5, 0));
         p1.setOpaque(false);
         JLabel nameLbl = new JLabel("Name:");
-        nameLbl.setFont(new Font("Arial", Font.BOLD, 14));
+        nameLbl.setFont(AppConstants.FONT_LABEL_BOLD);
         nameLbl.setForeground(Color.BLACK);
         p1.add(nameLbl, BorderLayout.WEST);
         nameInput = getInputField();
@@ -236,8 +237,8 @@ public class UserScreen extends JPanel {
 
         JPanel p2 = new JPanel(new BorderLayout(5, 0));
         p2.setOpaque(false);
-        JLabel contactLbl = new JLabel("Contact No.:");
-        contactLbl.setFont(new Font("Arial", Font.BOLD, 14));
+        JLabel contactLbl = new JLabel("Contact No.");
+        contactLbl.setFont(AppConstants.FONT_LABEL_BOLD);
         contactLbl.setForeground(Color.BLACK);
         p2.add(contactLbl, BorderLayout.WEST);
 
@@ -257,7 +258,7 @@ public class UserScreen extends JPanel {
         JPanel p3 = new JPanel(new BorderLayout(5, 0));
         p3.setOpaque(false);
         JLabel addressLbl = new JLabel("Address:");
-        addressLbl.setFont(new Font("Arial", Font.BOLD, 14));
+        addressLbl.setFont(AppConstants.FONT_LABEL_BOLD);
         addressLbl.setForeground(Color.BLACK);
         p3.add(addressLbl, BorderLayout.WEST);
         addressInput = getInputField();
@@ -285,12 +286,12 @@ public class UserScreen extends JPanel {
         topControlPanel.add(infoPanel, BorderLayout.CENTER);
 
         JPanel headerPanel = new JPanel(new GridLayout(1, 4, 5, 0));
-        headerPanel.setBackground(new Color(200, 200, 200));
+        headerPanel.setBackground(AppConstants.BG_MEDIUM_GRAY);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         String[] headers = {"Item Name", "Qty", "Value", "Total"};
         for (String header : headers) {
             JLabel headerLabel = new JLabel(header, SwingConstants.CENTER);
-            headerLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            headerLabel.setFont(AppConstants.FONT_LABEL_BOLD);
             headerLabel.setForeground(Color.BLACK);
             headerPanel.add(headerLabel);
         }
@@ -305,7 +306,7 @@ public class UserScreen extends JPanel {
         scrollContent.add(itemsPanel, BorderLayout.NORTH);
 
         JScrollPane scrollPane = new JScrollPane(scrollContent);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppConstants.BORDER_LIGHT_GRAY, 1));
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setOpaque(false);
         scrollPane.setPreferredSize(new Dimension(scrollPane.getPreferredSize().width, 350));
@@ -325,8 +326,8 @@ public class UserScreen extends JPanel {
     private JPanel createCategoryTogglePanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panel.setOpaque(false);
-        JLabel catLabel = new JLabel("Categories:"); 
-        catLabel.setFont(new Font("Arial", Font.BOLD, 14)); 
+        JLabel catLabel = new JLabel("Categories:");
+        catLabel.setFont(AppConstants.FONT_LABEL_BOLD);
         catLabel.setForeground(Color.BLACK);
         panel.add(catLabel);
 
@@ -336,20 +337,20 @@ public class UserScreen extends JPanel {
             
             JToggleButton btn = new JToggleButton(catName);
             btn.setSelected(true);
-            btn.setFont(new Font("Arial", Font.PLAIN, 12));
+            btn.setFont(AppConstants.FONT_LABEL_REGULAR);
             btn.setPreferredSize(new Dimension(150, 32));
-            btn.setBackground(new Color(130, 170, 255));
+            btn.setBackground(AppConstants.PRIMARY_BLUE);
             btn.setForeground(Color.WHITE);
             btn.setFocusPainted(false);
-            btn.setBorder(BorderFactory.createLineBorder(new Color(100, 140, 225), 2));
+            btn.setBorder(BorderFactory.createLineBorder(AppConstants.DARK_PRIMARY_BLUE, 2));
             btn.addActionListener(e -> {
                 if (btn.isSelected()) {
                     selectedCategories.add(catId);
-                    btn.setBackground(new Color(130, 170, 255));
+                    btn.setBackground(AppConstants.PRIMARY_BLUE);
                     btn.setForeground(Color.WHITE);
                 } else {
                     selectedCategories.remove(catId);
-                    btn.setBackground(new Color(220, 220, 220));
+                    btn.setBackground(AppConstants.BG_GRAY);
                     btn.setForeground(Color.GRAY);
                 }
                 refreshTableRows();
@@ -402,7 +403,7 @@ public class UserScreen extends JPanel {
             }
 
             JLabel noItemsLabel = new JLabel(msg.toString(), SwingConstants.CENTER);
-            noItemsLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+            noItemsLabel.setFont(AppConstants.FONT_BODY_ITALIC);
             noItemsLabel.setForeground(Color.GRAY);
             noItemsLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
             itemsPanel.add(noItemsLabel);
@@ -432,7 +433,7 @@ public class UserScreen extends JPanel {
             // Ensure initial quantity doesn't exceed available stock
             int qty = Math.min(initialQuantity, item.quantity);
             JSpinner spinner = new JSpinner(new SpinnerNumberModel(qty, 0, item.quantity, 1));
-            spinner.setFont(new Font("Arial", Font.PLAIN, 13));
+            spinner.setFont(AppConstants.FONT_BODY_SMALL);
             JComponent editor = spinner.getEditor();
             if (editor instanceof JSpinner.DefaultEditor) {
                 ((JSpinner.DefaultEditor)editor).getTextField().setForeground(Color.BLACK);
@@ -451,8 +452,8 @@ public class UserScreen extends JPanel {
             qtyComp = spinner;
         } else {
             JLabel out = new JLabel("Out of Stock");
-            out.setForeground(Color.RED);
-            out.setFont(new Font("Arial", Font.BOLD, 12));
+            out.setForeground(AppConstants.ACCENT_RED);
+            out.setFont(AppConstants.FONT_LABEL_BOLD_SMALL);
             out.setHorizontalAlignment(SwingConstants.CENTER);
             qtyComp = out;
             totalLbl.setText("-");
@@ -490,11 +491,11 @@ public class UserScreen extends JPanel {
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
         buttons.setOpaque(false);
 
-        JButton checkoutButton = createActionButton("Checkout", new Color(34, 139, 34));
+        JButton checkoutButton = createActionButton("Checkout", AppConstants.ACCENT_GREEN);
         checkoutButton.addActionListener(e -> generateInvoice());
 
         // Clear Cart button - resets all quantities to 0
-        JButton clearCartButton = createActionButton("Clear Cart", new Color(220, 53, 69));
+        JButton clearCartButton = createActionButton("Clear Cart", AppConstants.ACCENT_RED);
         clearCartButton.addActionListener(e -> {
             // Reset all spinner values to 0
             for (ItemRowData row : itemRows) {
@@ -537,7 +538,7 @@ public class UserScreen extends JPanel {
 
     private JButton createActionButton(String text, Color bg) {
         JButton b = new JButton(text);
-        b.setFont(new Font("Arial", Font.BOLD, 14));
+        b.setFont(AppConstants.FONT_LABEL_BOLD);
         b.setBackground(bg);
         b.setForeground(Color.WHITE);
         b.setFocusPainted(false);
@@ -548,15 +549,15 @@ public class UserScreen extends JPanel {
 
     private static JTextField getInputField() {
         JTextField f = new JTextField("", 15);
-        f.setFont(new Font("Arial", Font.PLAIN, 14));
+        f.setFont(AppConstants.FONT_BODY_REGULAR);
         f.setForeground(Color.BLACK);
-        f.setBorder(BorderFactory.createCompoundBorder(new RoundedBorder(15, new Color(200, 200, 200)), BorderFactory.createEmptyBorder(5, 10, 5, 10)));
+        f.setBorder(BorderFactory.createCompoundBorder(new RoundedBorder(15, AppConstants.BORDER_LIGHT_GRAY), BorderFactory.createEmptyBorder(5, 10, 5, 10)));
         return f;
     }
 
     private static JLabel getStyledLabel(String text) {
         JLabel l = new JLabel(text, SwingConstants.CENTER);
-        l.setFont(new Font("Arial", Font.PLAIN, 13));
+        l.setFont(AppConstants.FONT_BODY_SMALL);
         l.setForeground(Color.BLACK);
         l.setBackground(new Color(245, 245, 245));
         l.setOpaque(true);

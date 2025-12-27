@@ -11,12 +11,11 @@ public class AdminNavBarPanel extends JPanel {
     private String activeScreen;
     private Consumer<String> searchListener;
     private JTextField searchField;
-    private boolean showSearchBar; // NEW: flag to control search bar visibility
 
     // NEW: Constructor with search bar control
     public AdminNavBarPanel(String activeScreen, boolean showSearchBar) {
         this.activeScreen = activeScreen;
-        this.showSearchBar = showSearchBar;
+        // NEW: flag to control search bar visibility
         setLayout(new BorderLayout());
         setBackground(new Color(130, 170, 255));
         setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));

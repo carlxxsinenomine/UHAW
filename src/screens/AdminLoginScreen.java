@@ -4,12 +4,13 @@ import java.awt.*;
 import java.io.*;
 import javax.swing.*;
 import main.MainActivity;
+import main.AppConstants;
 
 public class AdminLoginScreen extends JPanel {
 
     public AdminLoginScreen() {
         setLayout(new BorderLayout());
-        setBackground(new Color(245, 245, 250));
+        setBackground(AppConstants.BG_LIGHT_GRAY);
 
         // Main content panel
         JPanel contentPanel = new JPanel(new GridBagLayout());
@@ -18,43 +19,43 @@ public class AdminLoginScreen extends JPanel {
         // Login card panel
         JPanel loginCard = new JPanel();
         loginCard.setLayout(new BoxLayout(loginCard, BoxLayout.Y_AXIS));
-        loginCard.setBackground(Color.WHITE);
+        loginCard.setBackground(AppConstants.BG_WHITE);
         loginCard.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+                BorderFactory.createLineBorder(AppConstants.BORDER_LIGHT_GRAY, 1),
                 BorderFactory.createEmptyBorder(40, 50, 40, 50)
         ));
         loginCard.setPreferredSize(new Dimension(400, 450));
 
         // Title
         JLabel titleLabel = new JLabel("Admin Login");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 32));
+        titleLabel.setFont(AppConstants.FONT_TITLE_LARGE_REGULAR);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
 
         // Username field
         JLabel usernameLabel = new JLabel("Username:");
-        usernameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        usernameLabel.setFont(AppConstants.FONT_BODY_REGULAR);
         usernameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JTextField usernameField = new JTextField(20);
-        usernameField.setFont(new Font("Arial", Font.PLAIN, 14));
+        usernameField.setFont(AppConstants.FONT_BODY_REGULAR);
         usernameField.setMaximumSize(new Dimension(300, 35));
 
         // Password field
         JLabel passwordLabel = new JLabel("Password:");
-        passwordLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        passwordLabel.setFont(AppConstants.FONT_BODY_REGULAR);
         passwordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         passwordLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
         JPasswordField passwordField = new JPasswordField(20);
-        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
+        passwordField.setFont(AppConstants.FONT_BODY_REGULAR);
         passwordField.setMaximumSize(new Dimension(300, 35));
 
         // Login button
         JButton loginButton = new JButton("Login");
         loginButton.setFont(new Font("Arial", Font.BOLD, 16));
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        loginButton.setBackground(new Color(130, 170, 255));
+        loginButton.setBackground(AppConstants.PRIMARY_BLUE);
         loginButton.setForeground(Color.WHITE);
         loginButton.setFocusPainted(false);
         loginButton.setMaximumSize(new Dimension(200, 45));
@@ -62,9 +63,9 @@ public class AdminLoginScreen extends JPanel {
 
         // Back button
         JButton backButton = new JButton("Back to Main Menu");
-        backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        backButton.setFont(AppConstants.FONT_BODY_REGULAR);
         backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        backButton.setBackground(Color.WHITE);
+        backButton.setBackground(AppConstants.BG_WHITE);
         backButton.setForeground(Color.BLACK);
         backButton.setFocusPainted(false);
         backButton.setBorder(BorderFactory.createCompoundBorder(

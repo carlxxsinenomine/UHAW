@@ -7,6 +7,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.table.*;
 import main.MainActivity;
+import main.AppConstants;
 
 public class AdminInventoryScreen extends JPanel {
     private DefaultTableModel tableModel;
@@ -171,7 +172,7 @@ public class AdminInventoryScreen extends JPanel {
         topPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 15, 20));
 
         JLabel titleLabel = new JLabel("Inventory Management");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setFont(AppConstants.FONT_TITLE_XL);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttonPanel.setOpaque(false);
@@ -196,7 +197,7 @@ public class AdminInventoryScreen extends JPanel {
 
     private JButton createActionButton(String text, Color color) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setFont(AppConstants.FONT_LABEL_BOLD);
         button.setBackground(color);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
@@ -219,11 +220,11 @@ public class AdminInventoryScreen extends JPanel {
         populateTable();
 
         inventoryTable = new JTable(tableModel);
-        inventoryTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        inventoryTable.setFont(AppConstants.FONT_BODY_REGULAR);
         inventoryTable.setRowHeight(40);
         inventoryTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        inventoryTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
-        inventoryTable.getTableHeader().setBackground(new Color(200, 200, 200));
+        inventoryTable.getTableHeader().setFont(AppConstants.FONT_LABEL_BOLD);
+        inventoryTable.getTableHeader().setBackground(AppConstants.BG_MEDIUM_GRAY);
         inventoryTable.getTableHeader().setReorderingAllowed(false);
 
         inventoryTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
@@ -252,7 +253,7 @@ public class AdminInventoryScreen extends JPanel {
         });
 
         JScrollPane scrollPane = new JScrollPane(inventoryTable);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppConstants.BORDER_LIGHT_GRAY, 1));
         tablePanel.add(scrollPane, BorderLayout.CENTER);
         return tablePanel;
     }

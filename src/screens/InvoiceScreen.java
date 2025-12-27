@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.table.*;
+import main.AppConstants;
 
 public class InvoiceScreen extends JPanel {
     private DefaultTableModel tableModel;
@@ -72,7 +73,7 @@ public class InvoiceScreen extends JPanel {
         topPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
 
         JLabel titleLabel = new JLabel("My Purchase History");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setFont(AppConstants.FONT_TITLE_XL);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         topPanel.add(titleLabel, BorderLayout.CENTER);
 
@@ -95,11 +96,11 @@ public class InvoiceScreen extends JPanel {
         loadPurchasesFromFolder();
 
         purchaseTable = new JTable(tableModel);
-        purchaseTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        purchaseTable.setFont(AppConstants.FONT_BODY_REGULAR);
         purchaseTable.setRowHeight(40);
         purchaseTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        purchaseTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
-        purchaseTable.getTableHeader().setBackground(new Color(200, 200, 200));
+        purchaseTable.getTableHeader().setFont(AppConstants.FONT_LABEL_BOLD);
+        purchaseTable.getTableHeader().setBackground(AppConstants.BG_MEDIUM_GRAY);
         purchaseTable.getTableHeader().setReorderingAllowed(false);
         
         DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
@@ -118,14 +119,14 @@ public class InvoiceScreen extends JPanel {
         purchaseTable.setAutoCreateRowSorter(true);
 
         JScrollPane scrollPane = new JScrollPane(purchaseTable);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppConstants.BORDER_LIGHT_GRAY, 1));
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         buttonPanel.setOpaque(false);
 
         JButton refreshButton = new JButton("Refresh");
-        refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
-        refreshButton.setBackground(new Color(130, 170, 255));
+        refreshButton.setFont(AppConstants.FONT_LABEL_BOLD);
+        refreshButton.setBackground(AppConstants.PRIMARY_BLUE);
         refreshButton.setForeground(Color.WHITE);
         refreshButton.setFocusPainted(false);
         refreshButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
@@ -133,8 +134,8 @@ public class InvoiceScreen extends JPanel {
         refreshButton.addActionListener(e -> refreshPurchases());
 
         JButton viewButton = new JButton("View Purchase");
-        viewButton.setFont(new Font("Arial", Font.BOLD, 14));
-        viewButton.setBackground(new Color(34, 139, 34));
+        viewButton.setFont(AppConstants.FONT_LABEL_BOLD);
+        viewButton.setBackground(AppConstants.ACCENT_GREEN);
         viewButton.setForeground(Color.WHITE);
         viewButton.setFocusPainted(false);
         viewButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));

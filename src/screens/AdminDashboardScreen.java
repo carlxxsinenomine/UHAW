@@ -7,19 +7,9 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import javax.swing.*;
+import main.AppConstants;
 
 public class AdminDashboardScreen extends JPanel {
-
-    // --- Modern Color Palette ---
-    private static final Color BG_COLOR = new Color(245, 247, 250);
-    private static final Color CARD_BG = Color.WHITE;
-    private static final Color TEXT_PRIMARY = new Color(50, 50, 50);
-    private static final Color TEXT_SECONDARY = new Color(100, 100, 100);
-
-    // --- Accent Colors ---
-    private static final Color ACCENT_BLUE = new Color(66, 133, 244);
-    private static final Color ACCENT_GREEN = new Color(15, 157, 88);
-    private static final Color ACCENT_ORANGE = new Color(255, 160, 0);
 
     // Dynamic Components
     private JLabel invoicesValueLabel;
@@ -29,11 +19,11 @@ public class AdminDashboardScreen extends JPanel {
 
     public AdminDashboardScreen() {
         setLayout(new BorderLayout());
-        setBackground(BG_COLOR);
+        setBackground(AppConstants.BG_LIGHT_GRAY);
 
         // Main container with proper spacing
         JPanel mainContainer = new JPanel(new BorderLayout());
-        mainContainer.setBackground(BG_COLOR);
+        mainContainer.setBackground(AppConstants.BG_LIGHT_GRAY);
         mainContainer.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
         // 1. Navigation Bar - PASS false to hide search bar
@@ -42,13 +32,13 @@ public class AdminDashboardScreen extends JPanel {
         // 2. Main Content Wrapper
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBackground(BG_COLOR);
+        contentPanel.setBackground(AppConstants.BG_LIGHT_GRAY);
         contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
         // --- Header Section ---
         JLabel titleLabel = new JLabel("Overview");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setForeground(TEXT_PRIMARY);
+        titleLabel.setFont(AppConstants.FONT_TITLE_LARGE_REGULAR);
+        titleLabel.setForeground(AppConstants.TEXT_PRIMARY);
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPanel statsPanel = createStatsPanel();
@@ -82,22 +72,22 @@ public class AdminDashboardScreen extends JPanel {
     //UI stuffs
     private JPanel createStatsPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 3, 20, 0));
-        panel.setBackground(BG_COLOR);
+        panel.setBackground(AppConstants.BG_LIGHT_GRAY);
         panel.setOpaque(false);
 
         invoicesValueLabel = new JLabel("0");
         revenueValueLabel = new JLabel("PHP 0.00");
 
-        panel.add(createModernCard("Total Invoices", invoicesValueLabel, "Invoices generated", ACCENT_BLUE));
-        panel.add(createModernCard("Inventory Items", new JLabel("15"), "In Stock", ACCENT_GREEN)); // Static or load from JSON
-        panel.add(createModernCard("Total Revenue", revenueValueLabel, "Accumulated Earnings", ACCENT_ORANGE));
+        panel.add(createModernCard("Total Invoices", invoicesValueLabel, "Invoices generated", AppConstants.ACCENT_BLUE));
+        panel.add(createModernCard("Inventory Items", new JLabel("15"), "In Stock", AppConstants.ACCENT_GREEN_BRIGHT)); // Static or load from JSON
+        panel.add(createModernCard("Total Revenue", revenueValueLabel, "Accumulated Earnings", AppConstants.ACCENT_ORANGE));
 
         return panel;
     }
 
     private JPanel createModernCard(String title, JLabel valueLabel, String subtext, Color accentColor) {
         JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(CARD_BG);
+        card.setBackground(AppConstants.BG_WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 5, 0, 0, accentColor),
                 BorderFactory.createEmptyBorder(20, 25, 20, 25)
@@ -108,10 +98,10 @@ public class AdminDashboardScreen extends JPanel {
 
         JLabel titleLbl = new JLabel(title.toUpperCase());
         titleLbl.setFont(new Font("Arial", Font.BOLD, 12));
-        titleLbl.setForeground(TEXT_SECONDARY);
+        titleLbl.setForeground(AppConstants.TEXT_SECONDARY);
 
         valueLabel.setFont(new Font("Arial", Font.BOLD, 28));
-        valueLabel.setForeground(TEXT_PRIMARY);
+        valueLabel.setForeground(AppConstants.TEXT_PRIMARY);
 
         JLabel subLbl = new JLabel(subtext);
         subLbl.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -130,13 +120,13 @@ public class AdminDashboardScreen extends JPanel {
         wrapper.setOpaque(false);
 
         JLabel header = new JLabel("Recent Activity");
-        header.setFont(new Font("Arial", Font.BOLD, 18));
-        header.setForeground(TEXT_PRIMARY);
+        header.setFont(AppConstants.FONT_TITLE_XL);
+        header.setForeground(AppConstants.TEXT_PRIMARY);
         header.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
 
         // Card Container
         JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(CARD_BG);
+        card.setBackground(AppConstants.BG_WHITE);
         card.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1));
 
         // The list panel that will hold rows
@@ -165,12 +155,12 @@ public class AdminDashboardScreen extends JPanel {
         row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
 
         JLabel textLbl = new JLabel(text);
-        textLbl.setFont(new Font("Arial", Font.PLAIN, 14));
-        textLbl.setForeground(TEXT_PRIMARY);
+        textLbl.setFont(AppConstants.FONT_BODY_REGULAR);
+        textLbl.setForeground(AppConstants.TEXT_PRIMARY);
 
         JLabel dateLbl = new JLabel(date);
         dateLbl.setFont(new Font("Arial", Font.PLAIN, 12));
-        dateLbl.setForeground(TEXT_SECONDARY);
+        dateLbl.setForeground(AppConstants.TEXT_SECONDARY);
 
         row.add(textLbl, BorderLayout.WEST);
         row.add(dateLbl, BorderLayout.EAST);
