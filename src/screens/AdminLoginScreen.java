@@ -133,39 +133,34 @@ public class AdminLoginScreen extends JPanel {
         String line;
         String csvSplitBy = ",";
         
-        try {
-            // Use ClassLoader to get the file from the package
-            InputStream is = getClass().getClassLoader()
-                .getResourceAsStream("screens/admin/credentials.csv");
-            
-            if (is == null) {
-                System.err.println("Credentials file not found in resources");
-                return false;
-            }
-            
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
-            
+        // This looks for the file relative to the compiled classes
+        // Note the leading slash: /screens/admin/credentials.csv
+        InputStream is = getClass().getResourceAsStream("/screens/admin/credentials.csv");
+
+        if (is == null) {
+            System.err.println("Could not find credentials.csv in classpath!");
+            return false;
+        }
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
             // Skip header line if exists
-            String header = br.readLine();
-            
+            // br.readLine(); // Uncomment this if you have a header like "user,pass"
+
             while ((line = br.readLine()) != null) {
                 String[] credentials = line.split(csvSplitBy);
-                
+
                 if (credentials.length >= 2) {
                     String csvUsername = credentials[0].trim();
                     String csvPassword = credentials[1].trim();
-                    
+
                     if (csvUsername.equals(username) && csvPassword.equals(password)) {
-                        br.close();
                         return true;
                     }
                 }
             }
-            br.close();
         } catch (IOException e) {
-            System.err.println("Error reading credentials file: " + e.getMessage());
+            e.printStackTrace();
         }
-        
         return false;
     }
 }
