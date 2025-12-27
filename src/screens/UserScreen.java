@@ -397,7 +397,7 @@ public class UserScreen extends JPanel {
         // Save current quantities before clearing
         Map<String, Integer> savedQuantities = new HashMap<>();
         for (ItemRowData row : itemRows) {
-            savedQuantities.put(row.itemName, (Integer) row.spinner.getValue());
+            savedQuantities.put(row.getItemName(), (Integer) row.getSpinner().getValue());
         }
         
         // Clear old components and references
@@ -414,7 +414,7 @@ public class UserScreen extends JPanel {
             InventoryItem item = inventory.get(itemName);
             
             // Check Category
-            boolean matchCat = selectedCategories.contains(item.category);
+            boolean matchCat = selectedCategories.contains(item.getCategory());
 
             // Check Search - only apply if currentSearchText is not empty
             boolean matchSearch = currentSearchText.isEmpty() || 
@@ -456,16 +456,16 @@ public class UserScreen extends JPanel {
         row.setOpaque(false);
         row.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-        JLabel nameLbl = getStyledLabel(item.name); 
+        JLabel nameLbl = getStyledLabel(item.getName()); 
         nameLbl.setHorizontalAlignment(SwingConstants.LEFT);
         JLabel totalLbl = getStyledLabel("0.00");
-        JLabel valLbl = getStyledLabel(String.format("%.2f", item.price));
+        JLabel valLbl = getStyledLabel(String.format("%.2f", item.getPrice()));
 
         JComponent qtyComp;
-        if (item.quantity > 0) {
+        if (item.getQuantity() > 0) {
             // Ensure initial quantity doesn't exceed available stock
-            int qty = Math.min(initialQuantity, item.quantity);
-            JSpinner spinner = new JSpinner(new SpinnerNumberModel(qty, 0, item.quantity, 1));
+            int qty = Math.min(initialQuantity, item.getQuantity());
+            JSpinner spinner = new JSpinner(new SpinnerNumberModel(qty, 0, item.getQuantity(), 1));
             spinner.setFont(AppConstants.FONT_BODY_SMALL);
             JComponent editor = spinner.getEditor();
             if (editor instanceof JSpinner.DefaultEditor) {
@@ -473,13 +473,13 @@ public class UserScreen extends JPanel {
             }
 
             // Store row data efficiently
-            itemRows.add(new ItemRowData(item.name, spinner, totalLbl));
+            itemRows.add(new ItemRowData(item.getName(), spinner, totalLbl));
             
             // Update total label with initial quantity
-            updateTotalFromLabel(spinner, item.price, totalLbl);
+            updateTotalFromLabel(spinner, item.getPrice(), totalLbl);
             
             spinner.addChangeListener(e -> {
-                updateTotalFromLabel(spinner, item.price, totalLbl);
+                updateTotalFromLabel(spinner, item.getPrice(), totalLbl);
                 updateOverallTotals();
             });
             qtyComp = spinner;
@@ -532,7 +532,7 @@ public class UserScreen extends JPanel {
         clearCartButton.addActionListener(e -> {
             // Reset all spinner values to 0
             for (ItemRowData row : itemRows) {
-                row.spinner.setValue(0);
+                row.getSpinner().setValue(0);
             }
             updateOverallTotals();
             JOptionPane.showMessageDialog(this, 
@@ -555,11 +555,11 @@ public class UserScreen extends JPanel {
         int count = 0;
         
         for (ItemRowData row : itemRows) {
-            int qty = (Integer) row.spinner.getValue();
+            int qty = (Integer) row.getSpinner().getValue();
             if (qty > 0) {
-                InventoryItem item = inventory.get(row.itemName);
+                InventoryItem item = inventory.get(row.getItemName());
                 if (item != null) {
-                    total += qty * item.price;
+                    total += qty * item.getPrice();
                     count += qty;
                 }
             }
@@ -640,24 +640,24 @@ public class UserScreen extends JPanel {
         int totalItems = 0;
 
         for (ItemRowData row : itemRows) {
-            int qty = (Integer) row.spinner.getValue();
+            int qty = (Integer) row.getSpinner().getValue();
             if (qty > 0) {
-                InventoryItem item = inventory.get(row.itemName);
+                InventoryItem item = inventory.get(row.getItemName());
                 if (item != null) {
                     // Check if we have enough stock
-                    if (qty > item.quantity) {
+                    if (qty > item.getQuantity()) {
                         JOptionPane.showMessageDialog(this,
-                            "Insufficient stock for: " + item.name + 
-                            "\nAvailable: " + item.quantity + 
+                            "Insufficient stock for: " + item.getName() + 
+                            "\nAvailable: " + item.getQuantity() + 
                             "\nRequested: " + qty,
                             "Insufficient Stock",
                             JOptionPane.WARNING_MESSAGE);
                         return;
                     }
 
-                    double itemTotal = qty * item.price;
-                    items.add(new InvoiceItem(item.name, qty, item.price, itemTotal));
-                    decrements.put(item.name, qty);
+                    double itemTotal = qty * item.getPrice();
+                    items.add(new InvoiceItem(item.getName(), qty, item.getPrice(), itemTotal));
+                    decrements.put(item.getName(), qty);
                     total += itemTotal;
                     totalItems += qty;
                 }
@@ -714,7 +714,7 @@ public class UserScreen extends JPanel {
                 
                 // Reset all spinners to 0
                 for (ItemRowData row : itemRows) {
-                    row.spinner.setValue(0);
+                    row.getSpinner().setValue(0);
                 }
 
                 // Clear search and refresh
@@ -883,13 +883,13 @@ public class UserScreen extends JPanel {
 
             // Items
             for (InvoiceItem i : items) {
-                String desc = i.description.length() > 38 ? 
-                             i.description.substring(0, 35) + "..." : i.description;
+                String desc = i.getDescription().length() > 38 ? 
+                             i.getDescription().substring(0, 35) + "..." : i.getDescription();
                 content.append(String.format("  %-40s %6d %18s %18s%n", 
                     desc, 
-                    i.qty, 
-                    String.format("PHP %,.2f", i.unitPrice),
-                    String.format("PHP %,.2f", i.amount)));
+                    i.getQty(), 
+                    String.format("PHP %,.2f", i.getUnitPrice()),
+                    String.format("PHP %,.2f", i.getAmount())));
             }
 
             content.append("\n").append("  ").append("-".repeat(76)).append("\n\n");

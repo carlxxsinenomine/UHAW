@@ -732,7 +732,7 @@
     "description": "10oz white painter's caulk",
     "value": 3.0,
     "category": "3",
-    "quantity": 1000
+    "quantity": 999
   },
   {
     "itemName": "Sandpaper 60 Grit",
