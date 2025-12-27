@@ -30,9 +30,6 @@ import main.MainActivity;
  * - Date-based filtering: Purchase History shows "Search (YYYY-MM-DD)" placeholder
  * - Text-based filtering: Other screens show generic "Search" placeholder
  * - Real-time updates: Search listener fires on each keystroke
- * 
- * @author UHAW Development Team
- * @version 1.0
  */
 public class NavBarPanel extends JPanel {
     private String activeScreen;

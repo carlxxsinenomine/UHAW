@@ -36,9 +36,6 @@ import main.AppConstants;
  * Navigation:
  * - Search feature disabled (not applicable for dashboard)
  * - Uses AdminNavBarPanel with showSearchBar = false
- * 
- * @author UHAW Development Team
- * @version 1.0
  */
 public class AdminDashboardScreen extends JPanel {
 

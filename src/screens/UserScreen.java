@@ -6,8 +6,8 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.swing.*;
-import main.MainActivity;
 import main.AppConstants;
+import main.MainActivity;
 
 /**
  * UserScreen - The customer purchase creation and checkout interface.
@@ -36,9 +36,6 @@ import main.AppConstants;
  * - Maintains selected categories and search text state
  * - Tracks shopping cart items and quantities
  * - Auto-calculates totals for display
- * 
- * @author UHAW Development Team
- * @version 1.0
  */
 public class UserScreen extends JPanel {
 

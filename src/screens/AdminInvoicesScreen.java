@@ -42,9 +42,6 @@ import main.AppConstants;
  * - Delete Invoice: Remove invoice files with confirmation
  * - Refresh: Reload invoice list to see latest transactions
  * - Search: Filter invoices by date range or ID pattern
- * 
- * @author UHAW Development Team
- * @version 1.0
  */
 public class AdminInvoicesScreen extends JPanel {
     private DefaultTableModel tableModel;

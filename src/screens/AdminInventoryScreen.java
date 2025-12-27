@@ -6,8 +6,8 @@ import java.io.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.table.*;
-import main.MainActivity;
 import main.AppConstants;
+import main.MainActivity;
 
 /**
  * AdminInventoryScreen - The inventory management interface for administrators.
@@ -38,9 +38,6 @@ import main.AppConstants;
  * - Edit Item: Opens dialog to modify selected item details
  * - Delete Item: Removes selected item with confirmation
  * - Search: Filters table in real-time as user types
- * 
- * @author UHAW Development Team
- * @version 1.0
  */
 public class AdminInventoryScreen extends JPanel {
     private DefaultTableModel tableModel;

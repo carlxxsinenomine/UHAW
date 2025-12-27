@@ -30,24 +30,6 @@ import java.awt.*;
  * - Padding Constants: Consistent internal spacing within components
  * - Border Radius: Rounded corners for modern appearance
  * - Border Width: Consistent stroke widths for outlines
- * 
- * Usage Example:
- * <pre>
- *     JLabel title = new JLabel("Welcome");
- *     title.setFont(AppConstants.FONT_TITLE_LARGE);
- *     title.setForeground(AppConstants.TEXT_PRIMARY);
- *     
- *     JButton btn = new JButton("Submit");
- *     btn.setBackground(AppConstants.PRIMARY_BLUE);
- *     btn.setBorder(BorderFactory.createEmptyBorder(
- *         AppConstants.PADDING_MEDIUM, AppConstants.PADDING_LARGE, 
- *         AppConstants.PADDING_MEDIUM, AppConstants.PADDING_LARGE));
- * </pre>
- * 
- * @author UHAW Development Team
- * @version 1.0
- * @see java.awt.Color
- * @see java.awt.Font
  */
 public class AppConstants {
 

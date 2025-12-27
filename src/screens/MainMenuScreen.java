@@ -4,8 +4,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
-import main.MainActivity;
 import main.AppConstants;
+import main.MainActivity;
 
 /**
  * MainMenuScreen - The initial landing page for the UHAW application.
@@ -25,9 +25,6 @@ import main.AppConstants;
  * - Admin Panel: Access to admin login screen for inventory and invoice management
  * - About: Display team information and system details
  * - Exit: Gracefully close the application
- * 
- * @author UHAW Development Team
- * @version 1.0
  */
 public class MainMenuScreen extends JPanel {
 

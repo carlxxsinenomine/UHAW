@@ -3,8 +3,8 @@ package screens;
 import java.awt.*;
 import java.io.*;
 import javax.swing.*;
-import main.MainActivity;
 import main.AppConstants;
+import main.MainActivity;
 
 /**
  * AdminLoginScreen - The authentication gateway for administrative access.
@@ -30,9 +30,6 @@ import main.AppConstants;
  * - Successful Login: Redirects to AdminDashboardScreen
  * - Back Button: Returns to MainMenuScreen
  * - Failed Login: Shows error message, allows retry
- * 
- * @author UHAW Development Team
- * @version 1.0
  */
 public class AdminLoginScreen extends JPanel {
 

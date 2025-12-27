@@ -39,9 +39,6 @@ import main.AppConstants;
  * - View Purchase: Opens a dialog displaying full invoice details
  * - Refresh: Manually reload invoice list from files
  * - Search: Filter invoices by ID or date pattern
- * 
- * @author UHAW Development Team
- * @version 1.0
  */
 public class InvoiceScreen extends JPanel {
     private DefaultTableModel tableModel;

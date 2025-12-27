@@ -31,9 +31,6 @@ import main.MainActivity;
  * - Inventory Screen: Text-based search by item name
  * - Invoices Screen: Date-based search with "Search (YYYY-MM-DD)" placeholder
  * - Dashboard: No search field displayed (showSearchBar = false)
- * 
- * @author UHAW Development Team
- * @version 1.0
  */
 public class AdminNavBarPanel extends JPanel {
     private String activeScreen;

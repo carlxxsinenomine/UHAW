@@ -22,9 +22,6 @@ import screens.*;
  * - Main Menu: Entry point for the application
  * - User Side: Customer purchase creation and history viewing
  * - Admin Side: Inventory management, invoice tracking, and system administration
- * 
- * @author UHAW Development Team
- * @version 1.0
  */
 public class MainActivity extends JFrame {
     private CardLayout cardLayout;
