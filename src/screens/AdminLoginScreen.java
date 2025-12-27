@@ -1,6 +1,7 @@
 package screens;
 
 import java.awt.*;
+import java.io.*;
 import javax.swing.*;
 import main.MainActivity;
 
@@ -59,7 +60,7 @@ public class AdminLoginScreen extends JPanel {
         loginButton.setMaximumSize(new Dimension(200, 45));
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // --- UPDATED BACK BUTTON ---
+        // Back button
         JButton backButton = new JButton("Back to Main Menu");
         backButton.setFont(new Font("Arial", Font.PLAIN, 14));
         backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -79,15 +80,13 @@ public class AdminLoginScreen extends JPanel {
         errorLabel.setForeground(Color.RED);
         errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Login action
+        // Login action with CSV authentication
         loginButton.addActionListener(e -> {
             String username = usernameField.getText();
             String password = new String(passwordField.getPassword());
 
-            // Simple authentication
-            if (username.equals("admin") && password.equals("admin123")) {
+            if (authenticateAdmin(username, password)) {
                 errorLabel.setText(" ");
-                // Clear fields
                 usernameField.setText("");
                 passwordField.setText("");
                 MainActivity.getInstance().showScreen(MainActivity.ADMIN_DASHBOARD_SCREEN);
@@ -96,13 +95,11 @@ public class AdminLoginScreen extends JPanel {
             }
         });
 
-        // --- UPDATED BACK ACTION ---
+        // Back action
         backButton.addActionListener(e -> {
-            // Clear fields/errors when leaving
             errorLabel.setText(" ");
             usernameField.setText("");
             passwordField.setText("");
-            // Navigate to Main Menu
             MainActivity.getInstance().showScreen(MainActivity.MAIN_MENU_SCREEN);
         });
 
@@ -124,5 +121,43 @@ public class AdminLoginScreen extends JPanel {
 
         contentPanel.add(loginCard);
         add(contentPanel, BorderLayout.CENTER);
+    }
+
+    /**
+     * Authenticates admin credentials from CSV file
+     * @param username The username to check
+     * @param password The password to check
+     * @return true if credentials are valid, false otherwise
+     */
+    private boolean authenticateAdmin(String username, String password) {
+        String csvFile = "../screens/admin/credentials.csv";
+        String line;
+        String csvSplitBy = ",";
+
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+            // Skip header line if exists
+            String header = br.readLine();
+            
+            while ((line = br.readLine()) != null) {
+                // Split by comma
+                String[] credentials = line.split(csvSplitBy);
+                
+                if (credentials.length >= 2) {
+                    String csvUsername = credentials[0].trim();
+                    String csvPassword = credentials[1].trim();
+                    
+                    if (csvUsername.equals(username) && csvPassword.equals(password)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println("Credentials file not found: " + csvFile);
+            System.err.println("Please create admin/credentials.csv file");
+        } catch (IOException e) {
+            System.err.println("Error reading credentials file: " + e.getMessage());
+        }
+        
+        return false;
     }
 }
