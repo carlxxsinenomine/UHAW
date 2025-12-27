@@ -130,16 +130,25 @@ public class AdminLoginScreen extends JPanel {
      * @return true if credentials are valid, false otherwise
      */
     private boolean authenticateAdmin(String username, String password) {
-        String csvFile = "../screens/admin/credentials.csv";
         String line;
         String csvSplitBy = ",";
-
-        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+        
+        try {
+            // Use ClassLoader to get the file from the package
+            InputStream is = getClass().getClassLoader()
+                .getResourceAsStream("screens/admin/credentials.csv");
+            
+            if (is == null) {
+                System.err.println("Credentials file not found in resources");
+                return false;
+            }
+            
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            
             // Skip header line if exists
             String header = br.readLine();
             
             while ((line = br.readLine()) != null) {
-                // Split by comma
                 String[] credentials = line.split(csvSplitBy);
                 
                 if (credentials.length >= 2) {
@@ -147,13 +156,12 @@ public class AdminLoginScreen extends JPanel {
                     String csvPassword = credentials[1].trim();
                     
                     if (csvUsername.equals(username) && csvPassword.equals(password)) {
+                        br.close();
                         return true;
                     }
                 }
             }
-        } catch (FileNotFoundException e) {
-            System.err.println("Credentials file not found: " + csvFile);
-            System.err.println("Please create admin/credentials.csv file");
+            br.close();
         } catch (IOException e) {
             System.err.println("Error reading credentials file: " + e.getMessage());
         }
