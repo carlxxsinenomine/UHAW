@@ -54,13 +54,6 @@ public class MainMenuScreen extends JPanel {
                 AppConstants.FONT_TITLE_LARGE
         );
 
-        // Subtitle: POS System
-        JTextArea subTitleLabel = createTextComponent(
-                "A point-of-sale (POS) system",
-                AppConstants.FONT_SUBTITLE
-        );
-        subTitleLabel.setForeground(AppConstants.TEXT_LIGHT); // Lighter blue/white
-
         // Description
         String descText = "– A hardware-software solution that processes sales " +
                 "transactions, and generates sales invoice – supporting retail operations.";
@@ -73,8 +66,6 @@ public class MainMenuScreen extends JPanel {
         leftPanel.add(Box.createVerticalGlue()); // Push content to center
         leftPanel.add(titleLabel);
         leftPanel.add(Box.createVerticalStrut(10));
-        leftPanel.add(subTitleLabel);
-        leftPanel.add(Box.createVerticalStrut(20));
         leftPanel.add(descLabel);
         leftPanel.add(Box.createVerticalGlue());
 
