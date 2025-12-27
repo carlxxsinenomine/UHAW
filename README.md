@@ -1,5 +1,5 @@
 # UHAW: Unified Hardware for Automated Wholesale/Retail
-UHAW: Unified Hardware for Automated Wholesale/Retail, is a desktop application designed to streamline the sales and receipt generation process for a hardware store. It acts as a point-of-sale (POS) system, allowing store personnel to quickly input customer purchases and generate a digital receipt (e-receipt).
+UHAW: Unified Hardware for Automated Wholesale/Retail, is a desktop application designed to streamline the sales and receipt generation process for a hardware store. It allows store personnel to quickly input customer purchases and generate a digital receipt (e-receipt).
 
 ## What the system does:
 The system facilitates the transaction process by allowing users (store clerks/cashiers) to select items from an existing inventory file, input quantities, calculate the total cost, process payment details, and instantly generate a formatted e-receipt.
