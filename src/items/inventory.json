@@ -31,7 +31,7 @@
     "itemName": "Chainsaw",
     "description": "Gas-powered 20-inch heavy duty chainsaw",
     "value": 500.0,
-    "category": "3",
+    "category": "1",
     "quantity": 1000
   },
   {
@@ -52,7 +52,7 @@
     "itemName": "Step Ladder",
     "description": "6ft aluminum step ladder",
     "value": 199.99,
-    "category": "3",
+    "category": "1",
     "quantity": 1000
   },
   {
@@ -80,7 +80,7 @@
     "itemName": "Wheelbarrow",
     "description": "Steel tray contractor wheelbarrow",
     "value": 299.99,
-    "category": "3",
+    "category": "1",
     "quantity": 1000
   },
   {
@@ -101,21 +101,21 @@
     "itemName": "Generator",
     "description": "Portable gasoline power generator 3500W",
     "value": 750.0,
-    "category": "3",
+    "category": "1",
     "quantity": 1000
   },
   {
     "itemName": "Bathroom Cleaner",
     "description": "Industrial strength tile cleaner (1L)",
     "value": 40.0,
-    "category": "2",
+    "category": "3",
     "quantity": 998
   },
   {
     "itemName": "Heavy Duty Broom",
     "description": "Outdoor push broom for rough surfaces",
     "value": 134.0,
-    "category": "2",
+    "category": "3",
     "quantity": 1000
   }
 ]
