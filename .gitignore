@@ -3,3 +3,4 @@ build.xml
 .idea/
 UHAW.iml
 manifest.mf
+out/
