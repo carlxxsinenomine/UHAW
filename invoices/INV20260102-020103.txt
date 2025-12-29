@@ -4,23 +4,25 @@
 
 ================================================================================
 
-  Invoice Number: INV20251227-173209
-  Date: 2025-12-27
+  Invoice Number: INV20260102-020103
+  Date: 2026-01-02
 
   BILL TO:
-  Name: saf
-  Contact No.: 343
-  Address: fsdf
+  Name: gebhel
+  Contact No.: 1234
+  Address: naga
 
   ----------------------------------------------------------------------------
 
   DESCRIPTION                                 QTY         UNIT PRICE             AMOUNT
 
-  Acrylic Caulk                                 1           PHP 3.00           PHP 3.00
+  Acrylic Paint                                 6          PHP 45.99         PHP 275.94
+  Ceiling Fan                                   4         PHP 250.00       PHP 1,000.00
+  Step Ladder                                   4         PHP 199.99         PHP 799.96
 
   ----------------------------------------------------------------------------
 
-  TOTAL AMOUNT DUE:                                                            PHP 3.00
+  TOTAL AMOUNT DUE:                                                        PHP 2,075.90
 
 ================================================================================
   Thank you for your business!

@@ -20,7 +20,7 @@
     "value": 250.0,
     "category": "2",
     "description": "Energy-efficient ceiling fan with remote control and LED light",
-    "quantity": 1000,
+    "quantity": 996,
     "material": "Metal"
   },
   {
@@ -28,7 +28,7 @@
     "value": 45.99,
     "category": "3",
     "description": "High-quality acrylic paint suitable for walls and furniture",
-    "quantity": 982,
+    "quantity": 976,
     "color": "Multi-Color"
   },
   {
@@ -60,7 +60,7 @@
     "value": 199.99,
     "category": "1",
     "description": "Lightweight 6-step ladder with safety rails",
-    "quantity": 1000,
+    "quantity": 996,
     "powerSource": "Manual"
   },
   {
@@ -774,13 +774,5 @@
     "description": "Joint compound for wall repair",
     "quantity": 1000,
     "color": "Clear/Natural"
-  },
-  {
-    "itemName": "Dildo",
-    "value": 126.0,
-    "category": "2",
-    "description": "Flexible vinyl conduit pipe for electrical",
-    "quantity": 0,
-    "material": "Mahogany"
   }
 ]
