@@ -2,35 +2,8 @@ package main;
 
 import java.awt.*;
 
-/**
- * AppConstants - Centralized UI Design Constants for the UHAW Application.
- * 
- * This utility class consolidates all UI-related constants used throughout the application,
- * including colors, fonts, and spacing values. By centralizing these constants, we ensure:
- * 
- * Design Benefits:
- * - Visual Consistency: All screens use the same color palette and font styles
- * - Maintainability: Updating a color or font requires changing only one location
- * - Scalability: Easy to implement themes, dark mode, or reskinning
- * - Reusability: Components can import and use constants without hard-coding values
- * 
- * Color Organization:
- * - Primary Colors: Main brand colors used throughout the app
- * - Background Colors: Panel and container backgrounds
- * - Text Colors: Different text hierarchy levels
- * - Accent Colors: Interactive elements, alerts, and highlights
- * - Border Colors: Dividers and outline borders
- * 
- * Font Organization:
- * - Title Fonts: Large headings and section titles
- * - Body Fonts: Regular text and content areas
- * - Label Fonts: UI labels, buttons, and control text
- * 
- * Spacing & Sizing:
- * - Padding Constants: Consistent internal spacing within components
- * - Border Radius: Rounded corners for modern appearance
- * - Border Width: Consistent stroke widths for outlines
- */
+// Centralized UI Design Constants for the UHAW Application
+// Consolidates colors, fonts, and spacing values used throughout the application
 public class AppConstants {
 
     // ============================================

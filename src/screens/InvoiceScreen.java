@@ -9,37 +9,8 @@ import javax.swing.*;
 import javax.swing.table.*;
 import main.AppConstants;
 
-/**
- * InvoiceScreen - The purchase history viewer for customers.
- * 
- * This screen displays the user's transaction history, showing all purchases
- * they have made through the system. Users can search for specific invoices,
- * view detailed invoice information, and monitor their purchasing patterns.
- * 
- * Features:
- * - Purchase Table: Displays all past invoices with key details
- * - Search Capability: Filter invoices by ID or date (YYYY-MM-DD format)
- * - Detailed View: View complete invoice content including itemized purchases
- * - Real-time Updates: Shows new invoices immediately after generation
- * - Sorting: Users can sort by any column (ID, Customer, Date, Amount, etc.)
- * 
- * Table Columns:
- * - Purchase ID: Unique invoice identifier
- * - Customer Name: Name of the purchasing customer
- * - Items Count: Number of items in the purchase
- * - Date: Date and time of purchase
- * - Total Amount: Total purchase value in PHP currency
- * 
- * Data Source:
- * - Loads invoices from text files in the invoices directory
- * - Invoices are named with pattern: [ID].txt
- * - Sorts by most recent first (descending by file modification date)
- * 
- * User Interactions:
- * - View Purchase: Opens a dialog displaying full invoice details
- * - Refresh: Manually reload invoice list from files
- * - Search: Filter invoices by ID or date pattern
- */
+// The purchase history viewer for customers
+// Displays user's transaction history showing all purchases made through the system
 public class InvoiceScreen extends JPanel {
     private DefaultTableModel tableModel;
     private JTable purchaseTable;

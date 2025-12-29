@@ -1,96 +1,55 @@
 package models;
 
-/**
- * InventoryItem - Represents a product in the inventory system.
- * 
- * This class encapsulates all information about a product, including its identification,
- * pricing, categorization, and current stock level. It serves as the core data model for
- * inventory management operations and provides controlled access to product attributes
- * through getter and setter methods.
- * 
- * Key Features:
- * - Immutable product name: Once created, the product name cannot be changed
- * - Mutable pricing: Prices can be updated to reflect market changes or promotions
- * - Category tracking: Products are organized by category for easier management
- * - Stock management: Quantity can be adjusted as inventory is bought or sold
- * 
- * Usage:
- * This class is typically used when loading inventory from storage, managing stock levels,
- * and displaying product information in the admin panel.
- */
+// Represents a product in the inventory system
+// Encapsulates product information including name, price, category, and quantity
 public class InventoryItem {
-    private final String name;
+    private String name;
     private double price;
     private String category;
     private int quantity;
+    public String description; // Public for backward compatibility with admin screen
     
-    /**
-     * Creates a new inventory item with the specified details.
-     *
-     * @param name the product name (immutable after creation)
-     * @param price the current selling price
-     * @param category the product category for organization
-     * @param quantity the current stock level
-     */
+    // Constructor for creating a new inventory item
+    // name: product name, price: selling price, category: product category, quantity: stock level
     public InventoryItem(String name, double price, String category, int quantity) {
         this.name = name;
         this.price = price;
         this.category = category;
         this.quantity = quantity;
+        this.description = "";
     }
     
-    /**
-     * Gets the product name.
-     * @return the name of this inventory item
-     */
+    // Returns the product name
     public String getName() {
         return name;
     }
     
-    /**
-     * Gets the current selling price.
-     * @return the price of this item
-     */
+    // Returns the current selling price
     public double getPrice() {
         return price;
     }
     
-    /**
-     * Updates the selling price of this item.
-     * @param price the new selling price
-     */
+    // Updates the selling price
     public void setPrice(double price) {
         this.price = price;
     }
     
-    /**
-     * Gets the product category.
-     * @return the category this item belongs to
-     */
+    // Returns the product category
     public String getCategory() {
         return category;
     }
     
-    /**
-     * Updates the product category.
-     * @param category the new category for this item
-     */
+    // Updates the product category
     public void setCategory(String category) {
         this.category = category;
     }
     
-    /**
-     * Gets the current stock quantity.
-     * @return the number of units currently in stock
-     */
+    // Returns the current stock quantity
     public int getQuantity() {
         return quantity;
     }
     
-    /**
-     * Updates the stock quantity.
-     * @param quantity the new stock level
-     */
+    // Updates the stock quantity
     public void setQuantity(int quantity) {
         this.quantity = quantity;
     }

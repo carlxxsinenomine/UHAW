@@ -9,40 +9,8 @@ import javax.swing.*;
 import javax.swing.table.*;
 import main.AppConstants;
 
-/**
- * AdminInvoicesScreen - The invoice management interface for administrators.
- * 
- * This screen provides admins with a comprehensive view of all system invoices
- * and tools to manage them. Administrators can monitor sales activity, search
- * for specific invoices, and perform administrative actions.
- * 
- * Features:
- * - Invoice Table: Displays all invoices with customer, date, and amount info
- * - Search Functionality: Find invoices by ID or date (YYYY-MM-DD format)
- * - View Invoice: Open detailed invoice content in a popup dialog
- * - Delete Invoice: Remove specific invoices from the system
- * - Refresh: Manually reload invoice list from files
- * - Real-time Updates: Auto-reflects new invoices from user purchases
- * 
- * Table Columns:
- * - Invoice ID: Unique invoice identifier
- * - Customer Name: Name of the purchasing customer
- * - Items Count: Number of items in the invoice
- * - Date: Date and time of invoice generation
- * - Total Amount: Total invoice value in PHP currency
- * 
- * Data Management:
- * - Loads invoices from text files in the invoices directory
- * - Displays invoices sorted by most recent first
- * - Supports date-based filtering for period analysis
- * - Manages invoice file operations (read, delete)
- * 
- * Admin Actions:
- * - View Invoice: Display complete invoice details and content
- * - Delete Invoice: Remove invoice files with confirmation
- * - Refresh: Reload invoice list to see latest transactions
- * - Search: Filter invoices by date range or ID pattern
- */
+// The invoice management interface for administrators
+// Provides admins with comprehensive view of all system invoices and management tools
 public class AdminInvoicesScreen extends JPanel {
     private DefaultTableModel tableModel;
     private JTable invoiceTable;

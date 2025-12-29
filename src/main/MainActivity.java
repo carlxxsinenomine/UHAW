@@ -4,25 +4,8 @@ import java.awt.*;
 import javax.swing.*;
 import screens.*;
 
-/**
- * MainActivity - The main application window and screen management hub.
- * 
- * This class serves as the central controller for the entire UHAW (Unified Hardware for Automated Wholesale)
- * point-of-sale system. It manages screen navigation using a CardLayout pattern, allowing users to switch
- * between different screens (Main Menu, User Panel, Admin Dashboard, etc.) seamlessly.
- * 
- * Key Responsibilities:
- * - Initialize and display the application window
- * - Manage screen transitions using CardLayout
- * - Maintain references to screens that need data refresh functionality
- * - Provide centralized access to screen identifiers for navigation
- * - Coordinate data refresh across multiple screens when inventory changes
- * 
- * Screen Categories:
- * - Main Menu: Entry point for the application
- * - User Side: Customer purchase creation and history viewing
- * - Admin Side: Inventory management, invoice tracking, and system administration
- */
+// The main application window and screen management hub
+// Manages screen navigation using CardLayout pattern, allowing users to switch between screens
 public class MainActivity extends JFrame {
     private CardLayout cardLayout;
     private JPanel cardPanel;

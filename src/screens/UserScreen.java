@@ -9,47 +9,22 @@ import javax.swing.*;
 import main.AppConstants;
 import main.MainActivity;
 import models.InventoryItem;
+import models.InventoryManager;
 import models.InvoiceItem;
 import models.ItemRowData;
 import models.RoundedBorder;
 
-/**
- * UserScreen - The customer purchase creation and checkout interface.
- * 
- * This is the primary screen for end-users to browse inventory, add items to cart,
- * and generate purchase invoices. It provides a complete shopping experience with:
- * 
- * Key Features:
- * - Inventory Display: Shows available items with prices and stock levels
- * - Category Filtering: Users can filter items by Tools, Building Materials, Paint & Supplies
- * - Search Functionality: Real-time search by item name
- * - Shopping Cart: Quantity selector for each item with automatic total calculation
- * - Customer Information: Form to capture customer name, contact, and address
- * - Invoice Generation: Creates purchase invoices saved as text files
- * 
- * Layout Sections:
- * - Navigation Bar: Search field and Main Menu button
- * - Title: "Create Purchase" header
- * - Customer Info Panel: Input fields for customer details
- * - Category Toggle Panel: Filter buttons for inventory categories
- * - Inventory Table: Displays items with quantity spinners and totals
- * - Bottom Panel: Cart summary and action buttons (Checkout, Clear Cart)
- * 
- * Data Management:
- * - Loads inventory from JSON file (src/items/inventory.json)
- * - Maintains selected categories and search text state
- * - Tracks shopping cart items and quantities
- * - Auto-calculates totals for display
- */
+// The customer purchase creation and checkout interface
+// Primary screen for end-users to browse inventory, add items to cart, and generate purchase invoices
 public class UserScreen extends JPanel {
 
-    // Data structures - optimized to reduce memory
-    private final Map<String, InventoryItem> inventory; // Single map instead of three
+    // InventoryManager handles all data operations
+    private InventoryManager inventoryManager;
     private final Set<String> selectedCategories;
     private JPanel itemsPanel;
     private JLabel overallTotalLabel;
     private JLabel totalItemsLabel;
-    private final java.util.List<ItemRowData> itemRows; // Replace two maps with single list
+    private final java.util.List<ItemRowData> itemRows;
     
     private JTextField nameInput;
     private JTextField contactInput;
@@ -63,28 +38,18 @@ public class UserScreen extends JPanel {
     private static final String[] CATEGORY_IDS = {"1", "2", "3"};
     private static final String[] CATEGORY_NAMES = {"Tools", "Building Materials", "Paint & Supplies"};
 
-    /**
-     * Constructs the UserScreen and initializes all UI components.
-     * 
-     * Initialization Steps:
-     * 1. Creates data structures for inventory and selected categories
-     * 2. Loads inventory data from JSON file
-     * 3. Creates all UI panels (navigation, customer info, inventory table, etc.)
-     * 4. Sets up search listener for real-time filtering
-     * 5. Selects all categories by default
-     * 6. Displays items in the inventory table
-     */
+    // Constructor for UserScreen - initializes all UI components and loads inventory data
     public UserScreen() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        // Initialize optimized data structures
-        inventory = new HashMap<>();
+        // Initialize InventoryManager and data structures
+        inventoryManager = new InventoryManager();
         selectedCategories = new HashSet<>();
         itemRows = new ArrayList<>();
 
-        // Load Data and select all categories by default
-        loadInventoryData();
+        // Load inventory data and select all categories by default
+        inventoryManager.loadInventory();
         selectedCategories.addAll(Arrays.asList(CATEGORY_IDS));
 
         // 3. Main container
@@ -139,121 +104,24 @@ public class UserScreen extends JPanel {
         add(mainContainer);
     }
 
-    /**
-     * Refreshes the screen data and state.
-     * 
-     * This method is called when:
-     * - User navigates back to this screen
-     * - Inventory is updated by admin
-     * - Global refresh is triggered
-     * 
-     * Actions:
-     * - Reloads inventory from JSON file
-     * - Clears search filters
-     * - Refreshes table display
-     * - Resets any UI state
-     */
+    // Refreshes the screen data when user returns to this screen
+    // Reloads inventory, clears search, and refreshes table display
     public void refreshData() {
-        loadInventoryData();
-        resetSearch(); // Clear search when refreshing
+        inventoryManager.loadInventory();
+        resetSearch();
         refreshTableRows();
     }
 
-    // NEW METHOD: Reset search when screen is shown again
-    /**
-     * Resets search to its initial state.
-     * 
-     * This method clears the search text from the search field and resets
-     * the internal search state variable, allowing the user to see all items
-     * when returning to the screen.
-     */
+    // Resets search to its initial state
+    // Clears search text and internal search state variable
     public void resetSearch() {
         currentSearchText = "";
         if (navBarPanel != null) {
-            navBarPanel.resetSearch(); // FIXED: Changed from clearSearchField() to resetSearch()
+            navBarPanel.resetSearch();
         }
     }
 
-    private void loadInventoryData() {
-        try {
-            File file = null;
-            String[] possiblePaths = { "src/items/inventory.json", "items/inventory.json", "../items/inventory.json" };
-            for (String path : possiblePaths) {
-                File testFile = new File(path);
-                if (testFile.exists()) { file = testFile; break; }
-            }
-            if (file != null && file.exists()) {
-                try (Scanner scanner = new Scanner(file)) {
-                    StringBuilder content = new StringBuilder();
-                    while (scanner.hasNextLine()) content.append(scanner.nextLine());
-                    parseInventoryJson(content.toString());
-                }
-            } else {
-                loadSampleData();
-            }
-        } catch (Exception e) {
-            loadSampleData();
-        }
-    }
 
-    private void loadSampleData() {
-        inventory.put("Product A", new InventoryItem("Product A", 150.00, "1", 10));
-        inventory.put("Product B", new InventoryItem("Product B", 250.00, "2", 5));
-        inventory.put("Product C", new InventoryItem("Product C", 75.00, "3", 15));
-    }
-
-    private void parseInventoryJson(String jsonContent) {
-        try {
-            // Clear existing data before loading
-            inventory.clear();
-            
-            String jsonStr = jsonContent.replaceAll("\\s+", " ");
-            int arrayStart = jsonStr.indexOf('[');
-            int arrayEnd = jsonStr.lastIndexOf(']');
-            if (arrayStart != -1 && arrayEnd != -1) {
-                jsonStr = jsonStr.substring(arrayStart + 1, arrayEnd);
-                String[] items = jsonStr.split("\\},\\s*\\{");
-                for (String item : items) {
-                    item = item.trim().replace("{", "").replace("}", "");
-                    String itemName = extractJsonValue(item, "itemName");
-                    String valueStr = extractJsonValue(item, "value");
-                    String category = extractJsonValue(item, "category");
-                    String qtyStr = extractJsonValue(item, "quantity");
-
-                    if (itemName != null && valueStr != null && category != null) {
-                        try {
-                            double value = Double.parseDouble(valueStr.replaceAll(",.*", "").trim());
-                            int qty = (qtyStr != null) ? Integer.parseInt(qtyStr.trim()) : 0;
-                            inventory.put(itemName, new InventoryItem(itemName, value, category, qty));
-                        } catch (Exception e) {
-                            System.err.println("Error parsing item: " + itemName);
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error parsing JSON: " + e.getMessage());
-        }
-    }
-
-    private String extractJsonValue(String jsonStr, String key) {
-        String searchStr = "\"" + key + "\"";
-        int keyIndex = jsonStr.indexOf(searchStr);
-        if (keyIndex == -1) return null;
-        int colonIndex = jsonStr.indexOf(":", keyIndex);
-        if (colonIndex == -1) return null;
-        int valueStart = colonIndex + 1;
-        while (valueStart < jsonStr.length() && Character.isWhitespace(jsonStr.charAt(valueStart))) valueStart++;
-        if (valueStart >= jsonStr.length()) return null;
-        if (jsonStr.charAt(valueStart) == '"') {
-            int valueEnd = jsonStr.indexOf('"', valueStart + 1);
-            return (valueEnd != -1) ? jsonStr.substring(valueStart + 1, valueEnd) : null;
-        } else {
-            int valueEnd = valueStart;
-            while (valueEnd < jsonStr.length() && jsonStr.charAt(valueEnd) != ',' && jsonStr.charAt(valueEnd) != '}') valueEnd++;
-            return jsonStr.substring(valueStart, valueEnd).trim();
-        }
-    }
 
     private JPanel getCustomerInfoPanel() {
         JPanel container = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
@@ -404,7 +272,8 @@ public class UserScreen extends JPanel {
         itemsPanel.removeAll();
         itemRows.clear();
         
-        // Get sorted list of items
+        // Get all inventory items from manager
+        Map<String, InventoryItem> inventory = inventoryManager.getItemsAsMap();
         java.util.List<String> sorted = new ArrayList<>(inventory.keySet());
         Collections.sort(sorted);
 
@@ -445,10 +314,6 @@ public class UserScreen extends JPanel {
         itemsPanel.revalidate();
         itemsPanel.repaint();
         updateOverallTotals();
-    }
-
-    private JPanel createItemRow(InventoryItem item) {
-        return createItemRow(item, 0); // Default quantity is 0
     }
 
     private JPanel createItemRow(InventoryItem item, int initialQuantity) {
@@ -557,7 +422,7 @@ public class UserScreen extends JPanel {
         for (ItemRowData row : itemRows) {
             int qty = (Integer) row.getSpinner().getValue();
             if (qty > 0) {
-                InventoryItem item = inventory.get(row.getItemName());
+                InventoryItem item = inventoryManager.getItemByName(row.getItemName());
                 if (item != null) {
                     total += qty * item.getPrice();
                     count += qty;
@@ -642,7 +507,7 @@ public class UserScreen extends JPanel {
         for (ItemRowData row : itemRows) {
             int qty = (Integer) row.getSpinner().getValue();
             if (qty > 0) {
-                InventoryItem item = inventory.get(row.getItemName());
+                InventoryItem item = inventoryManager.getItemByName(row.getItemName());
                 if (item != null) {
                     // Check if we have enough stock
                     if (qty > item.getQuantity()) {
@@ -722,7 +587,7 @@ public class UserScreen extends JPanel {
                 refreshTableRows();
 
                 // Reload inventory data to reflect changes
-                loadInventoryData();
+                refreshData();
 
                 if (MainActivity.getInstance() != null) {
                     MainActivity.getInstance().refreshAllScreens();

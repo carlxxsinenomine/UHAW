@@ -6,54 +6,11 @@ import javax.swing.*;
 import main.AppConstants;
 import main.MainActivity;
 
-/**
- * AdminLoginScreen - The authentication gateway for administrative access.
- * 
- * This screen provides secure login functionality for administrators to access
- * the admin dashboard and management tools. It validates credentials against
- * a CSV file containing authorized admin usernames and passwords.
- * 
- * Features:
- * - Login Form: Username and password input fields
- * - Authentication: Validates against credentials.csv file
- * - Error Handling: Displays error messages for invalid credentials
- * - Back Navigation: Allows users to return to Main Menu
- * - Professional Design: Centered card-based layout with clear labeling
- * 
- * Security Notes:
- * - Credentials stored in: src/screens/admin/credentials.csv
- * - CSV Format: username,password (comma-separated)
- * - Password Masking: Password field hides input characters
- * - Case-Sensitive: Username and password matching is case-sensitive
- * 
- * Navigation:
- * - Successful Login: Redirects to AdminDashboardScreen
- * - Back Button: Returns to MainMenuScreen
- * - Failed Login: Shows error message, allows retry
- */
+// The authentication gateway for administrative access
+// Provides secure login functionality for administrators to access admin dashboard and tools
 public class AdminLoginScreen extends JPanel {
 
-    /**
-     * Constructs the AdminLoginScreen with a centered login card.
-     * <p>
-     * Creates a professional login interface with:
-     * - Centered card layout (400x450 pixels)
-     * - Title: "Admin Login"
-     * - Username input field
-     * - Password input field (masked)
-     * - Login button with primary blue color
-     * - Back to Main Menu button
-     * - Error message display area
-     * <p>
-     * Event Handlers:
-     * - Login Button: Validates credentials and navigates to dashboard or shows error
-     * - Back Button: Clears form and returns to Main Menu
-     * <p>
-     * Initial State:
-     * - Form fields empty
-     * - Error message hidden (single space)
-     * - Focus on username field
-     */
+    // Constructor for AdminLoginScreen - creates login interface with form fields and validation
     public AdminLoginScreen() {
         setLayout(new BorderLayout());
         setBackground(AppConstants.BG_LIGHT_GRAY);

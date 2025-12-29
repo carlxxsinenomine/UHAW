@@ -9,34 +9,8 @@ import java.util.Date;
 import javax.swing.*;
 import main.AppConstants;
 
-/**
- * AdminDashboardScreen - The main administrative overview and analytics screen.
- * 
- * This screen provides admins with a high-level overview of the system's key metrics
- * and recent activity. It serves as the landing page after admin login and displays
- * real-time data about the business operations.
- * 
- * Key Features:
- * - Statistics Cards: Displays total invoices, inventory items, and total revenue
- * - Activity Feed: Shows recent invoice generation and system activities
- * - Auto-Refresh: Updates statistics every 5 seconds for real-time monitoring
- * - Professional Dashboard Layout: Clean, card-based design with visual hierarchy
- * 
- * Displayed Metrics:
- * - Total Invoices: Count of all generated invoices
- * - Inventory Items: Current count of items in stock
- * - Total Revenue: Sum of all invoice amounts in PHP currency
- * - Recent Activity: Latest 5 invoices with timestamps
- * 
- * Data Sources:
- * - Invoices: Loaded from text files in the invoices directory
- * - Activity: Extracted from file modification dates and invoice content
- * - Updates: Automatic refresh every 5 seconds via Timer
- * 
- * Navigation:
- * - Search feature disabled (not applicable for dashboard)
- * - Uses AdminNavBarPanel with showSearchBar = false
- */
+// The main administrative overview and analytics screen
+// Provides admins with high-level overview of key metrics and recent business activity
 public class AdminDashboardScreen extends JPanel {
 
     // Dynamic Components
@@ -45,22 +19,7 @@ public class AdminDashboardScreen extends JPanel {
     private JPanel activityListPanel; // Panel to hold the list rows
     private Timer refreshTimer;
 
-    /**
-     * Constructs the AdminDashboardScreen with statistics and activity display.
-     * 
-     * Initialization:
-     * 1. Creates the main layout with navigation bar
-     * 2. Creates statistics cards for key metrics
-     * 3. Creates activity feed panel for recent invoices
-     * 4. Loads initial data
-     * 5. Starts auto-refresh timer (updates every 5 seconds)
-     * 
-     * Auto-Refresh:
-     * - Triggered via a Timer that fires every 5000 milliseconds
-     * - Calls refreshDashboardStats() for metric updates
-     * - Calls refreshActivityList() for activity feed updates
-     * - Ensures real-time data display without user intervention
-     */
+    // Constructor for AdminDashboardScreen - initializes statistics display and auto-refresh timer
     public AdminDashboardScreen() {
         setLayout(new BorderLayout());
         setBackground(AppConstants.BG_LIGHT_GRAY);

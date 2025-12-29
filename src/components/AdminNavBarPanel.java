@@ -7,53 +7,15 @@ import javax.swing.*;
 import javax.swing.event.*;
 import main.MainActivity;
 
-/**
- * AdminNavBarPanel - Navigation bar component for the Admin-facing screens.
- * 
- * This component provides a professional navigation header for admin screens (AdminDashboardScreen,
- * AdminInventoryScreen, AdminInvoicesScreen). It supports the admin's workflow with screen
- * identification, optional search functionality, and logout capabilities.
- * 
- * Features:
- * - Screen identifier display: Shows which admin screen the user is currently on
- * - Optional search field: Can be enabled or disabled per screen
- * - Dashboard mode: Hides search when not needed (e.g., on Dashboard)
- * - Logout button: Securely logs the admin out and returns to login screen
- * - Search listener: Notifies the parent screen of search text changes
- * - Placeholder management: Context-aware placeholder text based on screen type
- * 
- * Design:
- * - Color: Primary blue background (consistent with NavBarPanel)
- * - Layout: BorderLayout with left panel (title) and right panel (optional search + logout)
- * - Styling: Consistent with the UHAW design system
- * 
- * Search Behavior:
- * - Inventory Screen: Text-based search by item name
- * - Invoices Screen: Date-based search with "Search (YYYY-MM-DD)" placeholder
- * - Dashboard: No search field displayed (showSearchBar = false)
- */
+// Navigation bar component for the Admin-facing screens
+// Provides professional navigation header with optional search field and logout functionality
 public class AdminNavBarPanel extends JPanel {
     private String activeScreen;
     private Consumer<String> searchListener;
     private JTextField searchField;
 
-    /**
-     * Constructs an AdminNavBarPanel with optional search bar visibility control.
-     * 
-     * This flexible constructor allows admin screens to determine whether they need
-     * search functionality. For example:
-     * - Dashboard: showSearchBar = false (no search needed for overview)
-     * - Inventory: showSearchBar = true (search by item name)
-     * - Invoices: showSearchBar = true (search by date or invoice ID)
-     * 
-     * Components:
-     * - Left panel: Screen identifier and navigation breadcrumb
-     * - Right panel: Optional search field (if showSearchBar is true) and Logout button
-     * - Search placeholder: Changes based on active screen type
-     * 
-     * @param activeScreen The name of the current admin screen (e.g., "Dashboard", "Inventory", "Invoices")
-     * @param showSearchBar If true, displays the search field; if false, hides it
-     */
+    // Constructor for AdminNavBarPanel with optional search bar visibility control
+    // activeScreen: name of current screen, showSearchBar: whether to display search field
     // NEW: Constructor with search bar control
     public AdminNavBarPanel(String activeScreen, boolean showSearchBar) {
         this.activeScreen = activeScreen;
